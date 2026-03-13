@@ -24,6 +24,7 @@
     "@types/node": "^22.19.1",
     "@types/react": "^19.1.8",
     "@wagmi/cli": "^2.10.0",
+    "autoprefixer": "^10.4.27",
     "eslint-config-next": "^15.1.7",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",
