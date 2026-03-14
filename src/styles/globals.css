@@ -57,7 +57,7 @@ a {
     rgba(0, 191, 255, 0.08) 0%, /* Subtle cyan (complementary to green) for depth */
     transparent 50%
   );
-  animation: drift 25s linear infinite alternate;
+  /* Removed animation to prevent discoloring */
 }
 
 @keyframes drift {
