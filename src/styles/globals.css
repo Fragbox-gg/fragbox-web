@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
+/* Base resets and typography */
 html {
-  background-color: #0a0a12;
-  overscroll-behavior-y: none; /* Stops the "white rubber band" effect */
+  background-color: #0a120a; /* Dark green base for neon theme */
+  overscroll-behavior-y: none; /* Prevent "white rubber band" effect */
 }
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
-  color: #f4f4f5
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  color: #f4f4f5;
 }
 
 a {
@@ -23,25 +23,22 @@ a {
   box-sizing: border-box;
 }
 
-/* ============================================= */
-/*     Animated dark wavy-ish gradient bg        */
-/* ============================================= */
-
+/* Animated subtle wavy gradient background */
 .bg-animated {
   position: fixed;
   inset: 0;
   z-index: -10;
   background: linear-gradient(
     120deg,
-    #0a0a12 0%,     /* ← darker */
-    #141423 25%,    /* ← darker */
-    #0d111b 50%,    /* ← darker */
-    #172033 75%,    /* ← darker */
-    #0a0a12 100%
+    #0a120a 0%,   /* Dark green */
+    #0f1a0f 25%,  /* Subtle green shift */
+    #0a120a 50%,  /* Back to base */
+    #142314 75%,  /* Lighter green tint */
+    #0a120a 100%  /* Close loop */
   );
   background-size: 400% 400%;
   animation: subtleFlow 28s ease-in-out infinite;
-  filter: blur(1.4px) brightness(0.74) saturate(0.92);
+  filter: blur(1.4px) brightness(0.85) saturate(1.1); /* Enhanced for neon vibrancy */
 }
 
 @keyframes subtleFlow {
@@ -50,14 +47,14 @@ a {
   100% { background-position: 0% 50%; }
 }
 
-/* Optional: even more "wavy" feeling with extra layers */
+/* Overlay for wavy/glowing effect with complementary cyan tint */
 .bg-animated::before {
   content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(
     circle at 30% 70%,
-    rgba(79, 70, 229, 0.07) 0%,
+    rgba(0, 191, 255, 0.08) 0%, /* Subtle cyan (complementary to green) for depth */
     transparent 50%
   );
   animation: drift 25s linear infinite alternate;
@@ -68,18 +65,37 @@ a {
   100% { transform: translate(8%, 12%); }
 }
 
+/* Glassmorphism header with subtle green border */
 .glass-header {
   position: relative;
-  background: transparent; /* no bg on main element */
-  border-bottom: 1px solid rgba(63, 63, 70, 0.7); /* zinc-700/70 */
+  background: transparent;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2); /* Softer green border */
 }
 
 .glass-header::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* adjust opacity */
-  backdrop-filter: blur(8px);     /* or use Tailwind class if compiling */
-  -webkit-backdrop-filter: blur(8px); /* Safari */
+  background: rgba(10, 18, 10, 0.5); /* Darker green-tinted glass for sleekness */
+  backdrop-filter: blur(12px); /* Increased blur for smoother look */
+  -webkit-backdrop-filter: blur(12px);
   z-index: -1;
+}
+
+/* Subtle neon glow utility – toned down for readability and sleekness */
+.neon-glow {
+  text-shadow: 0 0 3px rgba(57, 255, 20, 0.5), 0 0 6px rgba(57, 255, 20, 0.3); /* Reduced intensity */
+}
+
+/* Additional complementary color utilities (cyan for accents) */
+.accent-cyan {
+  color: #00bfff; /* Electric cyan to complement neon green */
+}
+
+.bg-accent-cyan {
+  background-color: rgba(0, 191, 255, 0.1); /* Subtle cyan overlay */
+}
+
+.border-accent-cyan {
+  border-color: rgba(0, 191, 255, 0.3);
 }
