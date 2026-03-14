@@ -1,6 +1,7 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Rectangle } from 'recharts';
 
 const Home: NextPage = () => {
@@ -68,9 +69,7 @@ const Home: NextPage = () => {
           </section>
         </main>
 
-        <footer className="max-w-7xl mx-auto mt-12 pb-8 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
-          &copy; 2026 Fragbox.gg
-        </footer>
+        <Footer />
       </div>
     </div>
   );
