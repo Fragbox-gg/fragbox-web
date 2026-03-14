@@ -190,11 +190,8 @@ const Home: NextPage = () => {
               </p>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="https://github.com/LightPat/foundry-defi-stablecoin" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">Solidity</span></a>
-              <a href="https://www.getfoundry.sh/" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">Foundry</span></a>
-              <a href="https://github.com/LightPat/Mobilenet-Image-Classification" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">Python</span></a>
-              <a href="https://play.google.com/store/apps/details?id=com.GridlockGames.ViTheGame&hl=en_US" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">C#</span></a>
-              <a href="https://aws.amazon.com/what-is/sql/" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">SQL</span></a>
+              <a href="https://github.com/LightPat/foundry-defi-stablecoin" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">Matchmaking</span></a>
+              <a href="https://aws.amazon.com/what-is/sql/" target="_blank" rel="noopener noreferrer" className="inline-block hover:opacity-90 transition-opacity"><span className="px-3 py-1 bg-zinc-800 rounded-full text-xs border border-zinc-700">Help Center</span></a>
             </div>
           </div>
 
@@ -344,28 +341,24 @@ const Home: NextPage = () => {
             </div>
           </div>
 
-          {/* 5. EXPERIENCE LOG (Span 4) */}
+          {/* 5. MATCH LOG (Span 4) */}
           <div className="md:col-span-4 bg-zinc-900/30 border border-zinc-800 p-6 rounded-2xl">
             <h3 className="text-sm font-mono text-zinc-400 mb-6 uppercase tracking-widest">Experience_Log</h3>
             <ul className="space-y-6">
               <ExperienceItem 
-                title="Research Data Scientist I" 
-                org="Cleveland Clinic" 
-                period="Feb 2026 - Present"
-                desc="Restructured data warehouse for more optimal queries and ease of use for clinical studies"
+                title="Match 1" 
+                org="5v5" 
+                period="3/13/2026"
+                desc="$50 Prize Pool"
               />
             </ul>
           </div>
         </main>
 
         <footer className="max-w-7xl mx-auto mt-12 pb-8 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
-          &copy; 2026 Patrick Seeman // Engineered for Stability
+          &copy; 2026 Fragbox.gg
         </footer>
       </div>
-
-      <footer className="max-w-7xl mx-auto mt-12 pb-8 text-center text-zinc-600 text-[10px] uppercase tracking-widest">
-        &copy; 2026 Fragbox.gg
-      </footer>
     </div>
   );
 };
