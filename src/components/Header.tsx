@@ -4,24 +4,58 @@ import { Popover, Transition, PopoverButton, PopoverPanel } from '@headlessui/re
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useState } from 'react';
+import crypto from 'crypto'; // Ensure this is available; for client-side, may need a polyfill like crypto-browserify
+import { cookies } from 'next/headers';
 
 const Header: React.FC = () => {
-  // Generate a simple random state for CSRF protection (improve with crypto in prod)
-  const [state] = useState(() => Math.random().toString(36).substring(2, 15));
+    // Generate secure random code_verifier (43-128 chars, alphanumeric + -._~)
+    function generateCodeVerifier() {
+    return crypto
+        .randomBytes(32)
+        .toString('base64') // Use 'base64' here
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    }
 
-  const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
-  const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
+    // Compute code_challenge from verifier (SHA-256, base64url)
+    function generateCodeChallenge(verifier: string) {
+    return crypto
+        .createHash('sha256')
+        .update(verifier)
+        .digest('base64') // Use 'base64' here
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    }
 
-  const authUrl =
+    // In your component:
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = generateCodeChallenge(codeVerifier);
+
+    // Generate a simple random state for CSRF protection
+    const state = Math.random().toString(36).substring(2, 15);
+
+    // Store codeVerifier somewhere retrievable by server (e.g., via cookie or session)
+    // Example: set a secure cookie (use js-cookie or similar)
+    // Cookies.set('code_verifier', codeVerifier, { secure: true, sameSite: 'strict', expires: 1 / 1440 }); // 10 min expiry
+    // Cookies.set('oauth_state', state, { secure: true, sameSite: 'strict', expires: 1 / 1440 });
+
+    const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
+    const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
+
+    const authUrl =
     clientId && redirectUri
-      ? `https://accounts.faceit.com?${new URLSearchParams({
-          response_type: 'code',
-          client_id: clientId,
-          redirect_uri: redirectUri,
-          scope: 'openid profile email', // add 'membership' if you need FACEIT-specific data later
-          state,
+        ? `https://accounts.faceit.com?${new URLSearchParams({
+            response_type: 'code',
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            scope: 'openid profile email', // add 'membership' if needed
+            state,
+            code_challenge: codeChallenge,
+            code_challenge_method: 'S256',
         }).toString()}`
-      : '#'; // fallback if env vars missing
+        : '#';
 
   return (
     <header className="glass-header sticky top-0 z-20">
