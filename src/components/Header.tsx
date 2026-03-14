@@ -1,75 +1,25 @@
 import React from 'react';
-import { Fragment } from 'react';
+import { Fragment, useCallback } from 'react';
 import { Popover, Transition, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useState } from 'react';
 import crypto from 'crypto'; // Ensure this is available; for client-side, may need a polyfill like crypto-browserify
 import FaceitLoginButton from '../components/FaceitLoginButton';
+import { FaceitUserInfoProps } from '../pages/api/faceit';
 
-const Header: React.FC = () => {
-    // Generate secure random code_verifier (43-128 chars, alphanumeric + -._~)
-    function generateCodeVerifier() {
-    return crypto
-        .randomBytes(32)
-        .toString('base64') // Use 'base64' here
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-    }
+const Header = ({ faceitUser }: FaceitUserInfoProps) => {
 
-    // Compute code_challenge from verifier (SHA-256, base64url)
-    function generateCodeChallenge(verifier: string) {
-    return crypto
-        .createHash('sha256')
-        .update(verifier)
-        .digest('base64') // Use 'base64' here
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
-    }
+    const handleLogin = useCallback(() => {
+    const popup = window.open('/api/auth/faceit', '_blank', 'width=500,height=600');
+    const interval = setInterval(() => {
+        if (popup?.closed) {
+            clearInterval(interval);
+            window.location.reload(); // Refresh to detect new cookie
+        }
+        }, 1000);
+    }, []);
 
-    // In your component:
-    const codeVerifier = generateCodeVerifier();
-    const codeChallenge = generateCodeChallenge(codeVerifier);
-
-    // Generate a simple random state for CSRF protection
-    const state = Math.random().toString(36).substring(2, 15);
-
-    // Store codeVerifier somewhere retrievable by server (e.g., via cookie or session)
-    // Example: set a secure cookie (use js-cookie or similar)
-    // Cookies.set('code_verifier', codeVerifier, { secure: true, sameSite: 'strict', expires: 1 / 1440 }); // 10 min expiry
-    // Cookies.set('oauth_state', state, { secure: true, sameSite: 'strict', expires: 1 / 1440 });
-
-    const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
-    const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
-
-    const authUrl =
-    clientId && redirectUri
-        ? `https://accounts.faceit.com?${new URLSearchParams({
-            response_type: 'code',
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            scope: 'openid profile email', // add 'membership' if needed
-            state,
-            code_challenge: codeChallenge,
-            code_challenge_method: 'S256',
-            redirect_popup: 'true',
-        }).toString()}`
-        : '#';
-
-    // const authUrl = `https://accounts.faceit.com?${new URLSearchParams({
-    //     response_type: 'code',
-    //     client_id: clientId || '',
-    //     redirect_uri: redirectUri || '',
-    //     scope: 'openid profile email',
-    //     state,
-    //     code_challenge: codeChallenge,
-    //     code_challenge_method: 'S256',
-    //     redirect_popup: 'true', // Add this
-    //     }).toString()}`;
-
-  return (
+    return (
     <header className="glass-header sticky top-0 z-20">
         {/* --- HEADER --- */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -138,7 +88,58 @@ const Header: React.FC = () => {
                     </Popover>
                 </div>
 
-                <FaceitLoginButton />
+                {faceitUser === undefined || faceitUser === null ? (
+                    <FaceitLoginButton />
+                ) : (
+                <div className="flex items-center space-x-4">
+                    <img
+                    src={faceitUser?.picture || '/default-avatar.png'} // Fallback if no pic
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full"
+                    />
+                    <span className="font-medium text-white">{faceitUser?.nickname}</span>
+                    {/* Optional logout button */}
+                    <button
+                    onClick={async () => {
+                        try {
+                        const response = await fetch('/api/logout', {
+                            method: 'GET',           // or 'POST' — both work here
+                            credentials: 'include',  // important if you have other cookies/sessions
+                        });
+
+                        if (response.redirected) {
+                            // The API already sent 302 → Location header
+                            window.location.href = response.url || '/';
+                        } else {
+                            // fallback - in case something changes later
+                            window.location.href = '/';
+                        }
+                        } catch (err) {
+                        console.error('Logout failed', err);
+                        window.location.href = '/'; // still try to redirect
+                        }
+                    }}
+
+                    className="
+                        px-4 py-2           /* size & padding — adjust as you like */
+                        bg-red-600           /* or any color: bg-blue-600, bg-gray-800, etc. */
+                        text-white
+                        font-medium
+                        rounded-md           /* or rounded-lg, rounded-full */
+                        cursor-pointer       /* ← makes hand cursor appear */
+                        shadow-md            /* normal state shadow — optional */
+                        hover:shadow-lg      /* bigger shadow on hover */
+                        hover:bg-red-700     /* darken on hover — very common */
+                        transition-all       /* smooth transition */
+                        duration-200         /* speed of the animation */
+                        active:scale-95      /* tiny press-down effect when clicked */
+                    "
+                    >
+                    Logout
+                    </button>
+                </div>
+                )}
+                
 
                 {/* FACEIT Login Button - placed here instead of RainbowKit ConnectButton */}
                 {/* <a
@@ -156,7 +157,7 @@ const Header: React.FC = () => {
             </div>
         </div>
     </header>
-  );
+    );
 };
 
 export default Header;
