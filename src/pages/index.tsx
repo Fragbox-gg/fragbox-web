@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Rectangle } from 'recharts';
 import { FaceitUserInfoProps } from './api/faceit';
 
-const Home: NextPage = () => {
+const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Head>
@@ -17,7 +17,7 @@ const Home: NextPage = () => {
       {/* Animated background layer – full screen, behind everything */}
       <div className="fixed inset-0 min-h-[100dvh] bg-animated -z-10" />
 
-      {/* <Header faceitUser={faceitUser}/> */}
+      <Header faceitUser={faceitUser}/>
 
       {/* Main content */}
       <div className="relative z-0" style={{ paddingTop: '8px' }}>
@@ -109,36 +109,36 @@ function ExperienceItem({ title, org, period, desc }: { title: string, org: stri
   );
 }
 
-export const getServerSideProps: GetServerSideProps<{ faceitUser: FaceitUserInfoProps | null }> = async (context) => {
-  const { req } = context;
+// export const getServerSideProps: GetServerSideProps<{ faceitUser: FaceitUserInfoProps | null }> = async (context) => {
+//   const { req } = context;
 
-  // Manual cookie parser (reuse from callback)
-  const getCookieValue = (name: string): string | null => {
-    const cookieHeader = req.headers.cookie || '';
-    const match = cookieHeader.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
-    return match ? decodeURIComponent(match[2]) : null;
-  };
+//   // Manual cookie parser (reuse from callback)
+//   const getCookieValue = (name: string): string | null => {
+//     const cookieHeader = req.headers.cookie || '';
+//     const match = cookieHeader.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
+//     return match ? decodeURIComponent(match[2]) : null;
+//   };
 
-  const accessToken = getCookieValue('faceit_access_token');
-  let faceitUser: FaceitUserInfoProps | null = null;
+//   const accessToken = getCookieValue('faceit_access_token');
+//   let faceitUser: FaceitUserInfoProps | null = null;
 
-  if (accessToken) {
-    const userInfoUrl = 'https://api.faceit.com/auth/v1/resources/userinfo';
-    const userResponse = await fetch(userInfoUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
+//   if (accessToken) {
+//     const userInfoUrl = 'https://api.faceit.com/auth/v1/resources/userinfo';
+//     const userResponse = await fetch(userInfoUrl, {
+//       headers: {
+//         'Authorization': `Bearer ${accessToken}`,
+//       },
+//     });
 
-    if (userResponse.ok) {
-      faceitUser = await userResponse.json();
-    } else {
-      // Token expired/invalid? Clear cookie and redirect to logout if needed
-      context.res.setHeader('Set-Cookie', 'faceit_access_token=; HttpOnly; Path=/; Max-Age=0');
-    }
-  }
+//     if (userResponse.ok) {
+//       faceitUser = await userResponse.json();
+//     } else {
+//       // Token expired/invalid? Clear cookie and redirect to logout if needed
+//       context.res.setHeader('Set-Cookie', 'faceit_access_token=; HttpOnly; Path=/; Max-Age=0');
+//     }
+//   }
 
-  return { props: { faceitUser } };
-};
+//   return { props: { faceitUser } };
+// };
 
 export default Home;
