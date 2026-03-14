@@ -121,18 +121,19 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                     }}
 
                     className="
-                        px-4 py-2           /* size & padding — adjust as you like */
-                        bg-red-600           /* or any color: bg-blue-600, bg-gray-800, etc. */
+                        px-3 py-1.5            /* Adjusted padding for header fit */
+                        bg-lime-600            /* Matches your lime accents */
                         text-white
                         font-medium
-                        rounded-md           /* or rounded-lg, rounded-full */
-                        cursor-pointer       /* ← makes hand cursor appear */
-                        shadow-md            /* normal state shadow — optional */
-                        hover:shadow-lg      /* bigger shadow on hover */
-                        hover:bg-red-700     /* darken on hover — very common */
-                        transition-all       /* smooth transition */
-                        duration-200         /* speed of the animation */
-                        active:scale-95      /* tiny press-down effect when clicked */
+                        rounded-md             /* Soft corners like your cards */
+                        cursor-pointer         /* Hand cursor on hover */
+                        shadow-md              /* Base shadow for pop */
+                        hover:bg-lime-700      /* Darken on hover */
+                        hover:shadow-lg        /* Increased shadow for lift effect */
+                        hover:-translate-y-0.5 /* Subtle upward shift */
+                        transition-all
+                        duration-200           /* Smooth animation */
+                        active:scale-95        /* Press-down feel on click */
                     "
                     >
                     Logout
