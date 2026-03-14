@@ -5,6 +5,7 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useState } from 'react';
 import crypto from 'crypto'; // Ensure this is available; for client-side, may need a polyfill like crypto-browserify
+import FaceitLoginButton from '../components/FaceitLoginButton';
 
 const Header: React.FC = () => {
     // Generate secure random code_verifier (43-128 chars, alphanumeric + -._~)
@@ -137,13 +138,15 @@ const Header: React.FC = () => {
                     </Popover>
                 </div>
 
+                <FaceitLoginButton />
+
                 {/* FACEIT Login Button - placed here instead of RainbowKit ConnectButton */}
-                <a
+                {/* <a
                     href={authUrl}
                     className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-400 text-white font-medium rounded-lg shadow-lg shadow-lime-500/20 transition-all duration-200 border border-lime-400/30 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
                 >
                     <span>Login with FACEIT</span>
-                </a>
+                </a> */}
 
                 {/* <ConnectButton
                     showBalance={{ smallScreen: false, largeScreen: false }}
