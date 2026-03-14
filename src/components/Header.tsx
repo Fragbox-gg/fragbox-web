@@ -5,7 +5,6 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useState } from 'react';
 import crypto from 'crypto'; // Ensure this is available; for client-side, may need a polyfill like crypto-browserify
-import { cookies } from 'next/headers';
 
 const Header: React.FC = () => {
     // Generate secure random code_verifier (43-128 chars, alphanumeric + -._~)
@@ -54,8 +53,20 @@ const Header: React.FC = () => {
             state,
             code_challenge: codeChallenge,
             code_challenge_method: 'S256',
+            redirect_popup: 'true',
         }).toString()}`
         : '#';
+
+    // const authUrl = `https://accounts.faceit.com?${new URLSearchParams({
+    //     response_type: 'code',
+    //     client_id: clientId || '',
+    //     redirect_uri: redirectUri || '',
+    //     scope: 'openid profile email',
+    //     state,
+    //     code_challenge: codeChallenge,
+    //     code_challenge_method: 'S256',
+    //     redirect_popup: 'true', // Add this
+    //     }).toString()}`;
 
   return (
     <header className="glass-header sticky top-0 z-20">
