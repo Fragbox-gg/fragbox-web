@@ -25,11 +25,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const codeChallenge = generateCodeChallenge(codeVerifier);
   const state = crypto.randomBytes(16).toString('hex');
 
+  console.log('Generated code_verifier:', codeVerifier);
+  console.log('Generated code_challenge:', codeChallenge);
+  console.log('Generated state:', state);
+
   const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
   const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
 
   if (!clientId || !redirectUri) {
-    return res.status(500).json({ error: 'Missing environment variables' });
+    res.status(500).json({ error: 'Missing environment variables' });
+    return;
   }
 
   const authUrl = `https://accounts.faceit.com?${new URLSearchParams({
@@ -40,15 +45,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
-    redirect_popup: 'true', // Ensures proper pop-up handling
+    redirect_popup: 'true',
   }).toString()}`;
 
-  // Set secure HttpOnly cookies (10 min expiry)
   const maxAge = 60 * 10;
-  res.setHeader('Set-Cookie', [
-    `code_verifier=${codeVerifier}; HttpOnly; Secure=${process.env.NODE_ENV === 'production'}; SameSite=Strict; Path=/; Max-Age=${maxAge}`,
-    `oauth_state=${state}; HttpOnly; Secure=${process.env.NODE_ENV === 'production'}; SameSite=Strict; Path=/; Max-Age=${maxAge}`,
-  ]);
+  const secureFlag = '; Secure'; // Force Secure for HTTPS (local/prod)
 
-  res.redirect(302, authUrl);
+  // Manual Set-Cookie with SameSite=Lax
+  const verifierCookie = `code_verifier=${encodeURIComponent(codeVerifier)}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`;
+  const stateCookie = `oauth_state=${encodeURIComponent(state)}; HttpOnly; Path=/; Max-Age=${maxAge}; SameSite=Lax${secureFlag}`;
+
+  res.setHeader('Set-Cookie', [verifierCookie, stateCookie]);
+
+  res.setHeader('Location', authUrl);
+  res.status(302).end();
 }
