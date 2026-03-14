@@ -79,10 +79,10 @@ const Home: NextPage = () => {
                           </p>
 
                           <ul className="space-y-2 text-zinc-400 text-xs leading-relaxed">
-                            <li>• The Box: Every wager match creates a "Box" (the prize pool). Teams pay in, winners take the lot.</li>
-                            <li>• Instant Payouts: No "pending" BS. The moment the server hits 13 rounds, the Box is distributed.</li>
-                            <li>• Balanced Roles: Our algorithm ensures you aren't stuck with 5 AWPers. We match by playstyle (Entry, IGL, Support).</li>
-                            <li>• Reputation Matters: High Rep = Lower fees and faster queues. Low Rep = You're playing with the bottom-feeders.</li>
+                            <li>• The Box: Every wager match creates a Box (the prize pool). Teams pay in, winners take the lot.</li>
+                            <li>• Instant Payouts: No pending BS. The moment the server hits 13 rounds, the Box is distributed.</li>
+                            <li>• Balanced Roles: Our algorithm ensures you are not stuck with 5 AWPers. We match by playstyle (Entry, IGL, Support).</li>
+                            <li>• Reputation Matters: High Rep = Lower fees and faster queues. Low Rep = You are playing with the bottom-feeders.</li>
                             <li>• Anti-Smurf: We scan your Steam/Leetify history. You only play people as cracked as you are.</li>
                           </ul>
 
