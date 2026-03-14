@@ -1,6 +1,5 @@
 // In your component (assume this is a client component; add 'use client' at top if needed)
 import { useCallback } from 'react';
-import Image from 'next/image';
 
 const FaceitLoginButton = () => {
   const handleLogin = useCallback(() => {

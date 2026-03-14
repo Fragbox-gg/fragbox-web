@@ -109,7 +109,7 @@ function ExperienceItem({ title, org, period, desc }: { title: string, org: stri
   );
 }
 
-export const getServerSideProps: GetServerSideProps<FaceitUserInfoProps> = async (context) => {
+export const getServerSideProps: GetServerSideProps<{ faceitUser: FaceitUserInfoProps | null }> = async (context) => {
   const { req } = context;
 
   // Manual cookie parser (reuse from callback)
@@ -120,7 +120,7 @@ export const getServerSideProps: GetServerSideProps<FaceitUserInfoProps> = async
   };
 
   const accessToken = getCookieValue('faceit_access_token');
-  let faceitUser: { picture?: string; given_name?: string } | null = null;
+  let faceitUser: FaceitUserInfoProps | null = null;
 
   if (accessToken) {
     const userInfoUrl = 'https://api.faceit.com/auth/v1/resources/userinfo';

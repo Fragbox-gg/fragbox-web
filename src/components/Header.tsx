@@ -2,8 +2,7 @@ import React from 'react';
 import { Fragment, useCallback } from 'react';
 import { Popover, Transition, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import crypto from 'crypto'; // Ensure this is available; for client-side, may need a polyfill like crypto-browserify
+// import { ConnectButton } from '@rainbow-me/rainbowkit';
 import FaceitLoginButton from '../components/FaceitLoginButton';
 import { FaceitUserInfoProps } from '../pages/api/faceit';
 
