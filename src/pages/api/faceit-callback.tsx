@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Buffer } from 'buffer'; // Node.js Buffer for Base64
+import { Buffer } from 'buffer';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -9,44 +9,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, error } = req.query;
 
   if (error) {
-    return res.status(400).json({ error: `Faceit error: ${error}` });
+    console.error('Faceit OAuth error:', error);
+    return res.redirect('/?error=faceit_auth_failed'); // Redirect to home with error query
   }
 
-  if (!code) {
+  if (!code || typeof code !== 'string') {
     return res.status(400).json({ error: 'No authorization code provided' });
   }
 
-  const clientId = process.env.FACEIT_CLIENT_ID;
-  const clientSecret = process.env.FACEIT_CLIENT_SECRET;
-  const redirectUri = 'https://www.fragbox.gg/api/faceit-callback'; // Must match your Faceit client config
+  const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.FACEIT_OAUTH_SECRET;
+  const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
 
-  if (!clientId || !clientSecret) {
-    return res.status(500).json({ error: 'Missing Faceit client credentials' });
+  if (!clientId || !clientSecret || !redirectUri) {
+    console.error('Missing Faceit OAuth environment variables');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  // Exchange code for tokens
-  const tokenUrl = 'https://api.faceit.com/auth/v1/oauth/token';
-  const body = new URLSearchParams({
-    grant_type: 'authorization_code',
-    code: code as string,
-  });
+  // Step 1: Exchange authorization code for tokens
+  const tokenUrl = 'https://api.faceit.com/auth/v1/oauth/token'; // From Faceit OpenID config
+  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const tokenResponse = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      'Authorization': `Basic ${authHeader}`,
     },
-    body,
+    body: new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: redirectUri, // Must match exactly what you registered
+    }),
   });
+
+  if (!tokenResponse.ok) {
+    const errorData = await tokenResponse.json();
+    console.error('Token exchange failed:', errorData);
+    return res.redirect('/?error=token_exchange_failed');
+  }
 
   const tokenData = await tokenResponse.json();
 
-  if (!tokenResponse.ok) {
-    return res.status(500).json({ error: 'Token exchange failed', details: tokenData });
-  }
-
-  // Fetch user info using access token (e.g., to get Faceit ID)
+  // Step 2: Fetch user info (optional but useful for getting Faceit ID)
   const userInfoUrl = 'https://api.faceit.com/auth/v1/resources/userinfo';
   const userResponse = await fetch(userInfoUrl, {
     headers: {
@@ -54,18 +59,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const userData = await userResponse.json();
-
-  if (!userResponse.ok) {
-    return res.status(500).json({ error: 'User info fetch failed', details: userData });
+  let userData: any = {};
+  if (userResponse.ok) {
+    userData = await userResponse.json();
+    console.log('Faceit user info:', userData); // Debug: remove in production
+  } else {
+    console.warn('User info fetch failed, proceeding without it');
   }
 
-  // userData should include fields like guid (Faceit user ID), email, etc., based on scopes
-  console.log('User info:', userData); // For debugging; remove in prod
+  // For now, store the access token in a cookie (HttpOnly for security)
+  // In production, use a proper session library like next-iron-session or NextAuth.js
+  res.setHeader(
+    'Set-Cookie',
+    `faceit_access_token=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}`
+  );
 
-  // Set a secure cookie with the access token (expand to full session management)
-  res.setHeader('Set-Cookie', `faceit_token=${tokenData.access_token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${tokenData.expires_in}`);
+  // Optionally store refresh_token similarly if you plan to use it
 
-  // Redirect to home page after successful auth
+  // Redirect to home (or a dashboard page) after success
+  // You can pass userData.guid (Faceit ID) via query if needed, but better to fetch from session later
   res.redirect('/');
 }

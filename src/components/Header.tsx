@@ -3,8 +3,26 @@ import { Fragment } from 'react';
 import { Popover, Transition, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useState } from 'react';
 
 const Header: React.FC = () => {
+  // Generate a simple random state for CSRF protection (improve with crypto in prod)
+  const [state] = useState(() => Math.random().toString(36).substring(2, 15));
+
+  const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
+  const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
+
+  const authUrl =
+    clientId && redirectUri
+      ? `https://accounts.faceit.com?${new URLSearchParams({
+          response_type: 'code',
+          client_id: clientId,
+          redirect_uri: redirectUri,
+          scope: 'openid profile email', // add 'membership' if you need FACEIT-specific data later
+          state,
+        }).toString()}`
+      : '#'; // fallback if env vars missing
+
   return (
     <header className="glass-header sticky top-0 z-20">
         {/* --- HEADER --- */}
@@ -73,11 +91,20 @@ const Header: React.FC = () => {
                     )}
                     </Popover>
                 </div>
-                <ConnectButton
+
+                {/* FACEIT Login Button - placed here instead of RainbowKit ConnectButton */}
+                <a
+                    href={authUrl}
+                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-400 text-white font-medium rounded-lg shadow-lg shadow-lime-500/20 transition-all duration-200 border border-lime-400/30 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
+                >
+                    <span>Login with FACEIT</span>
+                </a>
+
+                {/* <ConnectButton
                     showBalance={{ smallScreen: false, largeScreen: false }}
                     chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
                     accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                />
+                /> */}
             </div>
         </div>
     </header>
