@@ -17,7 +17,6 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
 
   const userInFaction1 = team1.players.some((p) => p.player_id === userPlayerId);
 
-  // Decide which is "left" (user's team) and which is "right"
   const leftTeam  = userInFaction1 ? team1 : team2;
   const rightTeam = userInFaction1 ? team2 : team1;
 
@@ -42,86 +41,88 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
         min-w-[340px] max-w-[340px] flex-shrink-0
       `}
     >
-      {/* Map banner */}
-      <div className="relative h-40">
-        <Image
-          src={match.mapImage || '/cs2-map-fallback.jpg'}
-          alt={match.mapName || 'Map'}
-          fill
-          className="object-cover brightness-75"
-          sizes="(max-width: 768px) 85vw, 340px"
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <span className="text-2xl font-bold text-white drop-shadow-lg tracking-wide">
-            {match.mapName?.replace('de_', '').toUpperCase() || 'UNKNOWN'}
-          </span>
-        </div>
-      </div>
-
-      {/* Teams + Score row */}
-      <div className="p-5 pb-3">
-      <div className="flex items-center justify-center gap-10">
-
-        {/* Left avatar */}
-        <div className="flex flex-col items-center">
-          {leftTeam.avatar ? (
-            <Image
-              src={leftTeam.avatar}
-              alt={leftTeam.nickname}
-              width={64}
-              height={64}
-              className="rounded-full border-2 border-gray-700/60 shadow-md"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
-              ?
-            </div>
-          )}
-        </div>
-
-        {/* Centered score – this is now rock-solid center */}
-        <div className="text-3xl font-black text-white tracking-tighter drop-shadow-md">
-          {leftScore} : {rightScore}
-        </div>
-
-        {/* Right avatar */}
-        <div className="flex flex-col items-center">
-          {rightTeam.avatar ? (
-            <Image
-              src={rightTeam.avatar}
-              alt={rightTeam.nickname}
-              width={64}
-              height={64}
-              className="rounded-full border-2 border-gray-700/60 shadow-md"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
-              ?
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* Team names – below, centered under avatars */}
-      <div className="flex justify-between mt-4 px-2 sm:px-8 md:px-12 text-sm sm:text-base">
-        <div className="max-w-[45%] text-center">
-          <div className="font-semibold text-gray-200 truncate">
-            {leftTeam.nickname.replace('team_', '') || 'Your Team'}
+      <a
+        href={`https://www.faceit.com/en/cs2/room/${match.match_id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {/* Map banner */}
+        <div className="relative h-40">
+          <Image
+            src={match.mapImage || '/cs2-map-fallback.jpg'}
+            alt={match.mapName || 'Map'}
+            fill
+            className="object-cover brightness-75"
+            sizes="(max-width: 768px) 85vw, 340px"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            <span className="text-2xl font-bold text-white drop-shadow-lg tracking-wide">
+              {match.mapName?.replace('de_', '').toUpperCase() || 'UNKNOWN'}
+            </span>
           </div>
         </div>
-        <div className="max-w-[45%] text-center">
-          <div className="font-semibold text-gray-200 truncate">
-            {rightTeam.nickname.replace('team_', '') || 'Opponents'}
+
+        {/* Main content */}
+        <div className="pt-4 pb-4">
+          <div className="flex items-start justify-between">
+
+            {/* Left team – avatar + name below */}
+            <div className="flex flex-col items-center w-[42%]">
+              {leftTeam.avatar ? (
+                <Image
+                  src={leftTeam.avatar}
+                  alt={leftTeam.nickname}
+                  width={64}
+                  height={64}
+                  className="rounded-full border-2 border-gray-700/60 shadow-md mb-2"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold mb-2">
+                  ?
+                </div>
+              )}
+              <div className="text-center">
+                <div className="font-semibold text-base leading-tight truncate max-w-full">
+                  {leftTeam.nickname || 'Your Team'}
+                </div>
+              </div>
+            </div>
+
+            {/* Centered score */}
+            <div className="text-3xl font-black text-white tracking-tighter drop-shadow-md shrink-0 whitespace-nowrap min-w-[80px] text-center pt-4">
+              {leftScore} : {rightScore}
+            </div>
+
+            {/* Right team – avatar + name below */}
+            <div className="flex flex-col items-center w-[42%]">
+              {rightTeam.avatar ? (
+                <Image
+                  src={rightTeam.avatar}
+                  alt={rightTeam.nickname}
+                  width={64}
+                  height={64}
+                  className="rounded-full border-2 border-gray-700/60 shadow-md mb-2"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold mb-2">
+                  ?
+                </div>
+              )}
+              <div className="text-center">
+                <div className="font-semibold text-base leading-tight truncate max-w-full">
+                  {rightTeam.nickname || 'Opponents'}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-      </div>
-    </div>
 
-    {/* Result line */}
-    <div className="text-center text-sm text-gray-400 pb-5 pt-2 border-t border-gray-800/50">
-      {userWon ? 'Victory' : 'Defeat'} • {timeStr}
-    </div>
+        {/* Result & time */}
+        <div className="text-center text-sm text-gray-400 pb-5 pt-2 border-t border-gray-800/50 mx-6">
+          {userWon ? 'Victory' : 'Defeat'} • {timeStr}
+        </div>
+      </a>
     </div>
   );
 }
