@@ -88,9 +88,14 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
               </div>
             </div>
 
-            {/* Centered score */}
-            <div className="text-3xl font-black text-white tracking-tighter drop-shadow-md shrink-0 whitespace-nowrap min-w-[80px] text-center pt-4">
-              {leftScore} : {rightScore}
+            {/* Centered score + "No bets" label */}
+            <div className="flex flex-col items-center shrink-0 pt-2">
+              <div className="text-3xl font-black text-white tracking-tighter drop-shadow-md whitespace-nowrap">
+                {leftScore} : {rightScore}
+              </div>
+              <div className="text-sm text-gray-400 font-medium mt-1">
+                No bets
+              </div>
             </div>
 
             {/* Right team – avatar + name below */}

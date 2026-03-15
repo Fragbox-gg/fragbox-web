@@ -60,7 +60,6 @@ export default function PlayerMatchHistory({ faceitUser }: FaceitUserInfoProps) 
       <MatchHistoryList
         matches={matches}
         userPlayerId={faceitUser?.guid!}
-        title={`${faceitUser?.nickname || 'Player'}'s Recent CS2 Matches`}
       />
     </div>
   );

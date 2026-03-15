@@ -11,7 +11,6 @@ interface MatchHistoryListProps {
 export default function MatchHistoryList({
   matches,
   userPlayerId,
-  title = "Recent Matches",
 }: MatchHistoryListProps) {
   if (matches.length === 0) {
     return (
@@ -23,10 +22,6 @@ export default function MatchHistoryList({
 
   return (
     <div className="space-y-6">
-      {title && (
-        <h2 className="text-2xl font-bold text-white px-2">{title}</h2>
-      )}
-
       {/* Horizontal scroll */}
       <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
         <div className="flex gap-6 px-2">
