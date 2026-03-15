@@ -2,7 +2,7 @@ import React from 'react';
 import { Fragment, useCallback } from 'react';
 import { Popover, Transition, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
-// import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import FaceitLoginButton from '../components/FaceitLoginButton';
 import { FaceitUserInfoProps } from '../pages/api/faceit';
 
@@ -87,73 +87,66 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                     </Popover>
                 </div>
 
-                {faceitUser === undefined || faceitUser === null ? (
-                    <FaceitLoginButton />
-                ) : (
-                <div className="flex items-center space-x-4">
-                    <img
-                    src={faceitUser?.picture || '/default-avatar.png'} // Fallback if no pic
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full"
+                <div className="flex items-center justify-end gap-4">
+                    <ConnectButton
+                        showBalance={{ smallScreen: false, largeScreen: false }}
+                        chainStatus={{ smallScreen: "icon", largeScreen: "icon" }}
+                        accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
                     />
-                    <span className="font-medium text-white">{faceitUser?.nickname}</span>
-                    {/* Optional logout button */}
-                    <button
-                    onClick={async () => {
-                        try {
-                        const response = await fetch('/api/logout', {
-                            method: 'GET',           // or 'POST' — both work here
-                            credentials: 'include',  // important if you have other cookies/sessions
-                        });
 
-                        if (response.redirected) {
-                            // The API already sent 302 → Location header
-                            window.location.href = response.url || '/';
-                        } else {
-                            // fallback - in case something changes later
-                            window.location.href = '/';
-                        }
-                        } catch (err) {
-                        console.error('Logout failed', err);
-                        window.location.href = '/'; // still try to redirect
-                        }
-                    }}
+                    {faceitUser === undefined || faceitUser === null ? (
+                        <FaceitLoginButton />
+                    ) : (
+                    <div className="flex items-center space-x-3">
+                        <img
+                        src={faceitUser?.picture || 'images/225-default-avatar.png'} // Fallback if no pic
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full"
+                        />
+                        <span className="font-medium text-white">{faceitUser?.nickname}</span>
+                        {/* Optional logout button */}
+                        <button
+                        onClick={async () => {
+                            try {
+                            const response = await fetch('/api/logout', {
+                                method: 'GET',           // or 'POST' — both work here
+                                credentials: 'include',  // important if you have other cookies/sessions
+                            });
 
-                    className="
-                        px-3 py-1.5            /* Adjusted padding for header fit */
-                        bg-lime-600            /* Matches your lime accents */
-                        text-white
-                        font-medium
-                        rounded-md             /* Soft corners like your cards */
-                        cursor-pointer         /* Hand cursor on hover */
-                        shadow-md              /* Base shadow for pop */
-                        hover:bg-lime-700      /* Darken on hover */
-                        hover:shadow-lg        /* Increased shadow for lift effect */
-                        hover:-translate-y-0.5 /* Subtle upward shift */
-                        transition-all
-                        duration-200           /* Smooth animation */
-                        active:scale-95        /* Press-down feel on click */
-                    "
-                    >
-                    Logout
-                    </button>
+                            if (response.redirected) {
+                                // The API already sent 302 → Location header
+                                window.location.href = response.url || '/';
+                            } else {
+                                // fallback - in case something changes later
+                                window.location.href = '/';
+                            }
+                            } catch (err) {
+                                console.error('Logout failed', err);
+                                window.location.href = '/'; // still try to redirect
+                            }
+                        }}
+
+                        className="
+                            px-3 py-1.5            /* Adjusted padding for header fit */
+                            bg-lime-600            /* Matches your lime accents */
+                            text-white
+                            font-medium
+                            rounded-md             /* Soft corners like your cards */
+                            cursor-pointer         /* Hand cursor on hover */
+                            shadow-md              /* Base shadow for pop */
+                            hover:bg-lime-700      /* Darken on hover */
+                            hover:shadow-lg        /* Increased shadow for lift effect */
+                            hover:-translate-y-0.5 /* Subtle upward shift */
+                            transition-all
+                            duration-200           /* Smooth animation */
+                            active:scale-95        /* Press-down feel on click */
+                        "
+                        >
+                        Logout
+                        </button>
+                    </div>
+                    )}
                 </div>
-                )}
-                
-
-                {/* FACEIT Login Button - placed here instead of RainbowKit ConnectButton */}
-                {/* <a
-                    href={authUrl}
-                    className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-lime-600 to-lime-500 hover:from-lime-500 hover:to-lime-400 text-white font-medium rounded-lg shadow-lg shadow-lime-500/20 transition-all duration-200 border border-lime-400/30 focus:outline-none focus:ring-2 focus:ring-lime-500/50"
-                >
-                    <span>Login with FACEIT</span>
-                </a> */}
-
-                {/* <ConnectButton
-                    showBalance={{ smallScreen: false, largeScreen: false }}
-                    chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-                    accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                /> */}
             </div>
         </div>
     </header>
