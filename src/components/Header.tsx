@@ -88,20 +88,20 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                 </div>
 
                 <div className="flex items-center justify-end gap-4">
-                    <ConnectButton
-                        showBalance={{ smallScreen: false, largeScreen: false }}
-                        chainStatus={{ smallScreen: "icon", largeScreen: "icon" }}
-                        accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                    />
-
                     {faceitUser === undefined || faceitUser === null ? (
                         <FaceitLoginButton />
                     ) : (
                     <div className="flex items-center space-x-3">
+                        <ConnectButton
+                            showBalance={{ smallScreen: false, largeScreen: false }}
+                            chainStatus={{ smallScreen: "icon", largeScreen: "icon" }}
+                            accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
+                        />
+
                         <img
                         src={faceitUser?.picture || 'images/225-default-avatar.png'} // Fallback if no pic
                         alt="Profile"
-                        className="w-10 h-10 rounded-full"
+                        className="w-10 h-10 rounded-full ml-3"
                         />
                         <span className="font-medium text-white">{faceitUser?.nickname}</span>
                         {/* Optional logout button */}
@@ -144,6 +144,8 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                         >
                         Logout
                         </button>
+
+                        
                     </div>
                     )}
                 </div>
