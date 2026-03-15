@@ -1,5 +1,6 @@
 // In your component (assume this is a client component; add 'use client' at top if needed)
 import { useCallback } from 'react';
+import Image from 'next/image';
 
 const FaceitLoginButton = () => {
   const handleLogin = useCallback(() => {
@@ -33,10 +34,12 @@ const FaceitLoginButton = () => {
       "
     >
       <span className="hidden md:inline">Login with FACEIT</span>
-      <img
+      <Image
         src="/images/faceit_logo.jpg" 
         alt="FACEIT Logo" 
-        className="w-7 h-7 ml-0 md:ml-2"
+        width={28} 
+        height={28} 
+        className="ml-0 md:ml-2"
       />
     </button>
   );

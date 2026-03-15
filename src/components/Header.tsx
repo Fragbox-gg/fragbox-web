@@ -5,6 +5,7 @@ import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import FaceitLoginButton from '../components/FaceitLoginButton';
 import { FaceitUserInfoProps } from '../pages/api/faceit';
+import Image from 'next/image';
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
 
@@ -24,10 +25,12 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
-                    <img
+                    <Image
                     src="/images/fragbox_green_flat.png"
                     alt="Fragbox Logo"
-                    className="w-14 h-14 shrink-0 object-contain"
+                    width={50}
+                    height={50}
+                    className="shrink-0 object-contain"
                     />
                     <div className="flex flex-col">
                         <h1 className="text-xl font-bold tracking-widest text-lime-500 font-mono leading-tight neon-glow">
@@ -98,10 +101,12 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                             accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
                         />
 
-                        <img
+                        <Image
                         src={faceitUser?.picture || 'images/225-default-avatar.png'} // Fallback if no pic
                         alt="Profile"
-                        className="w-10 h-10 rounded-full ml-3"
+                        width={38}
+                        height={38}
+                        className="rounded-full ml-3"
                         />
                         <span className="font-medium text-white">{faceitUser?.nickname}</span>
                         {/* Optional logout button */}

@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Rectangle } from 'recharts';
 import { FaceitUserInfoProps } from './api/faceit';
+import PlayerMatchHistory from '../components/PlayerMatchHistory';
 
 const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
   return (
@@ -63,10 +64,11 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
           {/* Recent Matches Section */}
           <section className="bg-zinc-900/30 border border-lime-500/20 p-6 rounded-2xl">
             <h3 className="text-sm font-mono text-lime-400 uppercase tracking-widest mb-6">Recent Matches</h3>
-            <ul className="space-y-6">
-              <ExperienceItem title="Match #1234" org="5v5 Pug" period="3/14/2026" desc="$100 Pot - Winner: Team A" />
+            <PlayerMatchHistory faceitUser={faceitUser}/>
+            {/* <ul className="space-y-6"> */}
+              {/* <ExperienceItem title="Match #1234" org="5v5 Pug" period="3/14/2026" desc="$100 Pot - Winner: Team A" /> */}
               {/* Add more dynamically */}
-            </ul>
+            {/* </ul> */}
           </section>
         </main>
 
