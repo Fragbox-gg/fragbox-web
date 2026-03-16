@@ -2,6 +2,7 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   base,
   baseSepolia,
+  foundry,
 } from 'wagmi/chains';
 
 export const config = getDefaultConfig({
@@ -10,6 +11,7 @@ export const config = getDefaultConfig({
   chains: [
     // base,
     baseSepolia,
+    foundry,
     ...([]),
   ],
   ssr: true,
