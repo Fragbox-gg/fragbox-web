@@ -18,7 +18,7 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Head>
-        <title>FRAGBOX.gg</title>
+        <title>Fragbox - CS2 Wager Pugs</title>
         <meta content="Frag. Win. Get Paid." name="FRAGBOX.gg" />
         <link href="/favicon_io/favicon.ico" rel="icon" />
       </Head>
