@@ -1,10 +1,10 @@
 // In your component (assume this is a client component; add 'use client' at top if needed)
-import { useCallback } from 'react';
-import Image from 'next/image';
+import { useCallback } from "react";
+import Image from "next/image";
 
 const FaceitLoginButton = () => {
   const handleLogin = useCallback(() => {
-    const popup = window.open('/api/faceit', '_blank', 'width=500,height=600');
+    const popup = window.open("/api/faceit", "_blank", "width=500,height=600");
     const interval = setInterval(() => {
       if (popup?.closed) {
         clearInterval(interval);
@@ -35,10 +35,10 @@ const FaceitLoginButton = () => {
     >
       <span className="hidden md:inline">Login with FACEIT</span>
       <Image
-        src="/images/faceit_logo.jpg" 
-        alt="FACEIT Logo" 
-        width={28} 
-        height={28} 
+        src="/images/faceit_logo.jpg"
+        alt="FACEIT Logo"
+        width={28}
+        height={28}
         className="ml-0 md:ml-2"
       />
     </button>

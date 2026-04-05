@@ -1,6 +1,6 @@
 // components/match/MatchCard.tsx
-import Image from 'next/image';
-import { EnrichedMatch } from '@/lib/faceit/types';
+import Image from "next/image";
+import { EnrichedMatch } from "@/lib/faceit/types";
 
 interface MatchCardProps {
   match: EnrichedMatch;
@@ -11,32 +11,36 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
   const team1 = match.teams.faction1;
   const team2 = match.teams.faction2;
 
-  const isFaction1Winner = match.results.winner === 'faction1';
+  const isFaction1Winner = match.results.winner === "faction1";
   const score1 = match.results.score.faction1;
   const score2 = match.results.score.faction2;
 
-  const userInFaction1 = team1.players.some((p) => p.player_id === userPlayerId);
+  const userInFaction1 = team1.players.some(
+    (p) => p.player_id === userPlayerId,
+  );
 
-  const leftTeam  = userInFaction1 ? team1 : team2;
+  const leftTeam = userInFaction1 ? team1 : team2;
   const rightTeam = userInFaction1 ? team2 : team1;
 
-  const leftScore  = userInFaction1 ? score1 : score2;
+  const leftScore = userInFaction1 ? score1 : score2;
   const rightScore = userInFaction1 ? score2 : score1;
 
-  const userWon = (userInFaction1 && isFaction1Winner) || (!userInFaction1 && !isFaction1Winner);
+  const userWon =
+    (userInFaction1 && isFaction1Winner) ||
+    (!userInFaction1 && !isFaction1Winner);
 
   const timeStr = new Date(match.finished_at * 1000).toLocaleString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
   return (
     <div
       className={`
         bg-gray-900 rounded-xl shadow-xl overflow-hidden border 
-        ${userWon ? 'border-green-600/70' : 'border-red-600/70'} 
+        ${userWon ? "border-green-600/70" : "border-red-600/70"} 
         hover:border-blue-500/60 transition-all duration-200
         min-w-[340px] max-w-[340px] flex-shrink-0
       `}
@@ -49,15 +53,15 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
         {/* Map banner */}
         <div className="relative h-40">
           <Image
-            src={match.mapImage || '/cs2-map-fallback.jpg'}
-            alt={match.mapName || 'Map'}
+            src={match.mapImage || "/cs2-map-fallback.jpg"}
+            alt={match.mapName || "Map"}
             fill
             className="object-cover brightness-75"
             sizes="(max-width: 768px) 85vw, 340px"
           />
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <span className="text-2xl font-bold text-white drop-shadow-lg tracking-wide">
-              {match.mapName?.replace('de_', '').toUpperCase() || 'UNKNOWN'}
+              {match.mapName?.replace("de_", "").toUpperCase() || "UNKNOWN"}
             </span>
           </div>
         </div>
@@ -65,7 +69,6 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
         {/* Main content */}
         <div className="pt-4 pb-4">
           <div className="flex items-start justify-between">
-
             {/* Left team – avatar + name below */}
             <div className="flex flex-col items-center w-[42%]">
               {leftTeam.avatar ? (
@@ -83,7 +86,7 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
               )}
               <div className="text-center">
                 <div className="font-semibold text-base leading-tight truncate max-w-full">
-                  {leftTeam.nickname || 'Your Team'}
+                  {leftTeam.nickname || "Your Team"}
                 </div>
               </div>
             </div>
@@ -115,17 +118,16 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
               )}
               <div className="text-center">
                 <div className="font-semibold text-base leading-tight truncate max-w-full">
-                  {rightTeam.nickname || 'Opponents'}
+                  {rightTeam.nickname || "Opponents"}
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* Result & time */}
         <div className="text-center text-sm text-gray-400 pb-5 pt-2 border-t border-gray-800/50 mx-6">
-          {userWon ? 'Victory' : 'Defeat'} • {timeStr}
+          {userWon ? "Victory" : "Defeat"} • {timeStr}
         </div>
       </a>
     </div>

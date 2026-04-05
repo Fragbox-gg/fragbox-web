@@ -38,7 +38,7 @@ export interface HistoryMatch {
   started_at: number;
   finished_at: number;
   results: {
-    winner: 'faction1' | 'faction2';
+    winner: "faction1" | "faction2";
     score: {
       faction1: number;
       faction2: number;
@@ -80,4 +80,4 @@ export interface EnrichedMatch extends HistoryMatch {
   mapImage?: string;
 }
 
-export const FALLBACK_MAP_IMG = '/cs2-map-fallback.jpg';
+export const FALLBACK_MAP_IMG = "/cs2-map-fallback.jpg";

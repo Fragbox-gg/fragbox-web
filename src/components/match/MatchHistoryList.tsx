@@ -1,6 +1,6 @@
 // components/match/MatchHistoryList.tsx
-import MatchCard from './MatchCard';
-import { EnrichedMatch } from '@/lib/faceit/types';
+import MatchCard from "./MatchCard";
+import { EnrichedMatch } from "@/lib/faceit/types";
 
 interface MatchHistoryListProps {
   matches: EnrichedMatch[];

@@ -1,46 +1,57 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { Buffer } from 'buffer';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { Buffer } from "buffer";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  if (req.method !== "GET") {
+    res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
   const { code, state, error } = req.query;
 
   if (error) {
-    console.error('Faceit OAuth error:', error);
-    res.setHeader('Location', '/?error=faceit_auth_failed');
+    console.error("Faceit OAuth error:", error);
+    res.setHeader("Location", "/?error=faceit_auth_failed");
     res.status(302).end();
     return;
   }
 
-  if (!code || typeof code !== 'string' || !state || typeof state !== 'string') {
-    res.status(400).json({ error: 'Missing code or state' });
+  if (
+    !code ||
+    typeof code !== "string" ||
+    !state ||
+    typeof state !== "string"
+  ) {
+    res.status(400).json({ error: "Missing code or state" });
     return;
   }
 
   // Manual cookie parser (package-free)
   const getCookieValue = (name: string): string | null => {
-    const cookieHeader = req.headers.cookie || '';
+    const cookieHeader = req.headers.cookie || "";
     const match = cookieHeader.match(new RegExp(`(^|;\\s*)${name}=([^;]*)`));
     if (!match) return null;
     return decodeURIComponent(match[2]);
   };
 
-  console.log('Raw cookie header in callback:', req.headers.cookie || 'No cookies');
-  
-  const storedState = getCookieValue('oauth_state');
-  const codeVerifier = getCookieValue('code_verifier');
+  console.log(
+    "Raw cookie header in callback:",
+    req.headers.cookie || "No cookies",
+  );
 
-  console.log('Retrieved code_verifier:', codeVerifier);
-  console.log('Retrieved state:', storedState);
-  console.log('Received state from query:', state);
+  const storedState = getCookieValue("oauth_state");
+  const codeVerifier = getCookieValue("code_verifier");
+
+  console.log("Retrieved code_verifier:", codeVerifier);
+  console.log("Retrieved state:", storedState);
+  console.log("Received state from query:", state);
 
   if (!storedState || !codeVerifier || state !== storedState) {
-    console.error('Invalid state or verifier');
-    res.status(400).json({ error: 'Invalid state or verifier' });
+    console.error("Invalid state or verifier");
+    res.status(400).json({ error: "Invalid state or verifier" });
     return;
   }
 
@@ -49,22 +60,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
 
   if (!clientId || !clientSecret || !redirectUri) {
-    console.error('Missing Faceit OAuth environment variables');
-    res.status(500).json({ error: 'Server configuration error' });
+    console.error("Missing Faceit OAuth environment variables");
+    res.status(500).json({ error: "Server configuration error" });
     return;
   }
 
-  const tokenUrl = 'https://api.faceit.com/auth/v1/oauth/token';
-  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  const tokenUrl = "https://api.faceit.com/auth/v1/oauth/token";
+  const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString(
+    "base64",
+  );
 
   const tokenResponse = await fetch(tokenUrl, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${authHeader}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${authHeader}`,
     },
     body: new URLSearchParams({
-      grant_type: 'authorization_code',
+      grant_type: "authorization_code",
       code,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier,
@@ -73,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!tokenResponse.ok) {
     const errorData = await tokenResponse.json();
-    console.error('Token exchange failed:', errorData);
+    console.error("Token exchange failed:", errorData);
     const errorHtml = `
       <html>
         <body>
@@ -82,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         </body>
       </html>
     `;
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader("Content-Type", "text/html");
     res.status(500).send(errorHtml);
     return;
   }
@@ -90,30 +103,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const tokenData = await tokenResponse.json();
 
   // Fetch user info (unchanged)
-  const userInfoUrl = 'https://api.faceit.com/auth/v1/resources/userinfo';
+  const userInfoUrl = "https://api.faceit.com/auth/v1/resources/userinfo";
   const userResponse = await fetch(userInfoUrl, {
     headers: {
-      'Authorization': `Bearer ${tokenData.access_token}`,
+      Authorization: `Bearer ${tokenData.access_token}`,
     },
   });
 
   let userData: any = {};
   if (userResponse.ok) {
     userData = await userResponse.json();
-    console.log('Faceit user info:', userData);
+    console.log("Faceit user info:", userData);
   } else {
-    console.warn('User info fetch failed, proceeding without it');
+    console.warn("User info fetch failed, proceeding without it");
   }
 
   // Set access token cookie manually
-  const isProd = process.env.NODE_ENV === 'production';
-  const accessTokenCookie = `faceit_access_token=${encodeURIComponent(tokenData.access_token)}; HttpOnly; Path=/; Max-Age=${tokenData.expires_in}; SameSite=Strict${isProd ? '; Secure' : ''}`;
+  const isProd = process.env.NODE_ENV === "production";
+  const accessTokenCookie = `faceit_access_token=${encodeURIComponent(tokenData.access_token)}; HttpOnly; Path=/; Max-Age=${tokenData.expires_in}; SameSite=Strict${isProd ? "; Secure" : ""}`;
 
   // Clear temp cookies manually
   const clearVerifier = `code_verifier=; HttpOnly; Path=/; Max-Age=0`;
   const clearState = `oauth_state=; HttpOnly; Path=/; Max-Age=0`;
 
-  res.setHeader('Set-Cookie', [accessTokenCookie, clearVerifier, clearState]);
+  res.setHeader("Set-Cookie", [accessTokenCookie, clearVerifier, clearState]);
 
   const successHtml = `
     <html>
@@ -123,6 +136,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       </body>
     </html>
   `;
-  res.setHeader('Content-Type', 'text/html');
+  res.setHeader("Content-Type", "text/html");
   res.status(200).send(successHtml);
 }
