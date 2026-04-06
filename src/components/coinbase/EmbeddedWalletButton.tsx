@@ -72,6 +72,12 @@ export default function EmbeddedWalletButton() {
             </button>
           </div>
         </div>
+        <button
+          onClick={async () => await signOut()}
+          className="mt-4 text-xs text-red-400 hover:text-red-300 transition-colors"
+        >
+          Sign out of wallet
+        </button>
       </div>
     );
   }
