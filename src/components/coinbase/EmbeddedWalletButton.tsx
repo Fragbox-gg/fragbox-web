@@ -108,7 +108,7 @@ export default function EmbeddedWalletButton() {
   };
 
   return (
-    <div className="w-72 bg-zinc-900 border border-zinc-700 rounded-3xl p-5 flex flex-col text-sm">
+    <div className="w-72 bg-zinc-900 border border-zinc-700 rounded-3xl p-5 pb-2 flex flex-col text-sm">
       {step === "initial" && (
         <button
           onClick={() => setStep("email")}
@@ -174,6 +174,12 @@ export default function EmbeddedWalletButton() {
       )}
 
       {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+
+      {/* Powered by Coinbase footer – subtle and always visible during login */}
+      <div className="mt-1 text-[10px] text-zinc-500 flex items-center justify-center gap-0.75">
+        <span>Powered by</span>
+        <span className="font-medium">Coinbase</span>
+      </div>
     </div>
   );
 }
