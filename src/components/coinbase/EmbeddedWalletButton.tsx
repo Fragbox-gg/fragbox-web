@@ -61,7 +61,7 @@ export default function EmbeddedWalletButton() {
 
         {/* Balance */}
         <div className="font-medium">
-          USDC <span className="text-lime-400">$0.00</span>
+          <span className="text-lime-400">$0.00</span>
         </div>
 
         {/* Deposit / Withdraw */}
