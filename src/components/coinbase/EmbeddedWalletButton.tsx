@@ -39,25 +39,29 @@ export default function EmbeddedWalletButton() {
     return (
       <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm w-full max-w-md">
         {/* Address + copy */}
-        <div className="flex items-center gap-2 bg-zinc-800 px-4 py-1.5 rounded-2xl">
+        <button
+          onClick={copyAddress}
+          className="group flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 px-4 py-1.5 rounded-2xl transition-all relative"
+        >
           <div className="w-2 h-2 bg-lime-500 rounded-full"></div>
-          <span className="font-mono text-zinc-300">
+
+          <span className="font-mono text-zinc-300 group-hover:text-white transition-colors">
             {evmAddress
               ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}`
               : "0x..."}
           </span>
-          <button
-            onClick={copyAddress}
-            className="text-lime-400 hover:text-white transition-colors"
-          >
+
+          <span className="text-lime-400 group-hover:text-white transition-colors text-base">
             📋
-          </button>
+          </span>
+
+          {/* Copied message – now correctly positioned */}
           {copied && (
-            <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-zinc-800 text-lime-400 text-xs px-3 py-1 rounded-2xl shadow-lg whitespace-nowrap">
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-zinc-800 text-lime-400 text-xs px-3 py-1 rounded-2xl shadow-lg whitespace-nowrap z-50 border border-zinc-600">
               wallet address copied
             </div>
           )}
-        </div>
+        </button>
 
         {/* Balance */}
         <div className="font-medium">
@@ -65,10 +69,10 @@ export default function EmbeddedWalletButton() {
         </div>
 
         {/* Deposit / Withdraw */}
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors">
           Deposit
         </button>
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors">
           Withdraw
         </button>
       </div>
