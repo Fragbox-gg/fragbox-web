@@ -135,40 +135,30 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
             </Popover>
           </div>
 
-          <div className="flex items-center gap-4">
-            {!faceitUser ? (
-              /* STACKED LOGIN BUTTONS (exactly as you asked) */
-              <div className="flex flex-col gap-3 items-end">
-                <FaceitLoginButton /> {/* Top: Faceit */}
-                <EmbeddedWalletButton /> {/* Bottom: Wallet */}
-              </div>
-            ) : (
-              /* Logged-in state */
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center gap-3">
-                  <Image
-                    src={
-                      faceitUser?.picture || "/images/225-default-avatar.png"
-                    }
-                    alt="Profile"
-                    width={38}
-                    height={38}
-                    className="rounded-full"
-                  />
-                  <span className="font-medium text-white">
-                    {faceitUser?.nickname}
-                  </span>
-                  <EmbeddedWalletButton /> {/* Wallet still visible */}
-                </div>
-                <button
-                  onClick={handleFullLogout}
-                  className="px-5 py-2 bg-lime-600 hover:bg-lime-500 text-white font-medium rounded-xl transition-all active:scale-95 shadow-md"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+          {/* TOP-RIGHT LOGIN AREA */}
+          {!isCdpSignedIn ? (
+            // STATE: NEITHER ACCOUNT SIGNED IN
+            <EmbeddedWalletButton />
+          ) : (
+            // CDP (wallet) is signed in
+            <div className="flex flex-col items-end gap-2">
+              {/* Wallet UI (now compact horizontal pill from above) */}
+              <EmbeddedWalletButton />
+
+              {!faceitUser && (
+                // STATE: WALLET SIGNED IN → show Faceit button UNDERNEATH
+                <FaceitLoginButton />
+              )}
+
+              {/* Logout always on the right when CDP is logged in */}
+              <button
+                onClick={handleFullLogout}
+                className="px-5 py-1.5 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-400 rounded-2xl transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
