@@ -33,7 +33,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           >
             <CDPReactProvider
               config={{
-                projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID,
+                projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID!,
                 disableAnalytics: true,
                 ethereum: {
                   createOnLogin: "smart", // creates the ERC-4337 smart account automatically
