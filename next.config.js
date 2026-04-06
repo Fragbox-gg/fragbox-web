@@ -4,7 +4,12 @@ const withVanillaExtract = createVanillaExtractPlugin();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@rainbow-me/rainbowkit'],
+  transpilePackages: [
+    '@rainbow-me/rainbowkit',
+    "@coinbase/cdp-react",
+    "@coinbase/cdp-core",
+    "@coinbase/cdp-hooks"
+  ],
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;

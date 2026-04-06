@@ -11,6 +11,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import FaceitLoginButton from "../components/FaceitLoginButton";
 import { FaceitUserInfoProps } from "../pages/api/faceit";
 import Image from "next/image";
+import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
   const handleLogin = useCallback(() => {
@@ -127,6 +128,8 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                   chainStatus={{ smallScreen: "icon", largeScreen: "icon" }}
                   accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
                 />
+
+                <EmbeddedWalletButton />
 
                 <Image
                   src={faceitUser?.picture || "images/225-default-avatar.png"} // Fallback if no pic

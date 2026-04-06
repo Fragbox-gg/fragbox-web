@@ -9,6 +9,8 @@ import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import { config } from "../wagmi";
 
+import { CDPReactProvider } from "@coinbase/cdp-react";
+
 const client = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -29,7 +31,18 @@ function MyApp({ Component, pageProps }: AppProps) {
               overlayBlur: "small",
             })}
           >
-            <Component {...pageProps} />
+            <CDPReactProvider
+              config={{
+                projectId: process.env.NEXT_PUBLIC_CDP_PROJECT_ID,
+                disableAnalytics: true,
+                ethereum: {
+                  createOnLogin: "smart", // creates the ERC-4337 smart account automatically
+                },
+                appName: "Fragbox",
+              }}
+            >
+              <Component {...pageProps} />
+            </CDPReactProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
