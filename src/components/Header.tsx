@@ -7,26 +7,43 @@ import {
   PopoverPanel,
 } from "@headlessui/react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import FaceitLoginButton from "../components/FaceitLoginButton";
 import { FaceitUserInfoProps } from "../pages/api/faceit";
 import Image from "next/image";
 import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
+import { useIsSignedIn, useSignOut } from "@coinbase/cdp-hooks";
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
-  const handleLogin = useCallback(() => {
-    const popup = window.open(
-      "/api/auth/faceit",
-      "_blank",
-      "width=500,height=600",
-    );
-    const interval = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(interval);
-        window.location.reload(); // Refresh to detect new cookie
+  const { isSignedIn: isCdpSignedIn } = useIsSignedIn();
+  const { signOut: signOutCDP } = useSignOut();
+
+  const handleFullLogout = async () => {
+    try {
+      // 1. Only sign out of CDP if actually signed in
+      if (isCdpSignedIn) {
+        await signOutCDP();
       }
-    }, 1000);
-  }, []);
+
+      // 2. Only hit Faceit logout API if we have a Faceit user
+      if (faceitUser) {
+        const response = await fetch("/api/logout", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.redirected) {
+          window.location.href = response.url || "/";
+          return;
+        }
+      }
+
+      // Final fallback redirect
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed", err);
+      window.location.href = "/";
+    }
+  };
 
   return (
     <header className="glass-header sticky top-0 z-20">
@@ -118,65 +135,34 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
             </Popover>
           </div>
 
-          <div className="flex items-center justify-end gap-4">
-            {faceitUser === undefined || faceitUser === null ? (
-              <FaceitLoginButton />
+          <div className="flex items-center gap-4">
+            {!faceitUser ? (
+              /* STACKED LOGIN BUTTONS (exactly as you asked) */
+              <div className="flex flex-col gap-3 items-end">
+                <FaceitLoginButton /> {/* Top: Faceit */}
+                <EmbeddedWalletButton /> {/* Bottom: Wallet */}
+              </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                <ConnectButton
-                  showBalance={{ smallScreen: false, largeScreen: false }}
-                  chainStatus={{ smallScreen: "icon", largeScreen: "icon" }}
-                  accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-                />
-
-                <EmbeddedWalletButton />
-
-                <Image
-                  src={faceitUser?.picture || "images/225-default-avatar.png"} // Fallback if no pic
-                  alt="Profile"
-                  width={38}
-                  height={38}
-                  className="rounded-full ml-3"
-                />
-                <span className="font-medium text-white">
-                  {faceitUser?.nickname}
-                </span>
-                {/* Optional logout button */}
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch("/api/logout", {
-                        method: "GET", // or 'POST' — both work here
-                        credentials: "include", // important if you have other cookies/sessions
-                      });
-
-                      if (response.redirected) {
-                        // The API already sent 302 → Location header
-                        window.location.href = response.url || "/";
-                      } else {
-                        // fallback - in case something changes later
-                        window.location.href = "/";
-                      }
-                    } catch (err) {
-                      console.error("Logout failed", err);
-                      window.location.href = "/"; // still try to redirect
+              /* Logged-in state */
+              <div className="flex items-center gap-4">
+                <div className="flex flex-col items-center gap-3">
+                  <Image
+                    src={
+                      faceitUser?.picture || "/images/225-default-avatar.png"
                     }
-                  }}
-                  className="
-                            px-3 py-1.5            /* Adjusted padding for header fit */
-                            bg-lime-600            /* Matches your lime accents */
-                            text-white
-                            font-medium
-                            rounded-md             /* Soft corners like your cards */
-                            cursor-pointer         /* Hand cursor on hover */
-                            shadow-md              /* Base shadow for pop */
-                            hover:bg-lime-700      /* Darken on hover */
-                            hover:shadow-lg        /* Increased shadow for lift effect */
-                            hover:-translate-y-0.5 /* Subtle upward shift */
-                            transition-all
-                            duration-200           /* Smooth animation */
-                            active:scale-95        /* Press-down feel on click */
-                        "
+                    alt="Profile"
+                    width={38}
+                    height={38}
+                    className="rounded-full"
+                  />
+                  <span className="font-medium text-white">
+                    {faceitUser?.nickname}
+                  </span>
+                  <EmbeddedWalletButton /> {/* Wallet still visible */}
+                </div>
+                <button
+                  onClick={handleFullLogout}
+                  className="px-5 py-2 bg-lime-600 hover:bg-lime-500 text-white font-medium rounded-xl transition-all active:scale-95 shadow-md"
                 >
                   Logout
                 </button>
