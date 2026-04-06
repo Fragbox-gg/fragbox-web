@@ -49,7 +49,7 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
     <header className="glass-header sticky top-0 z-20">
       {/* --- HEADER --- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-wrap justify-between items-center gap-3 sm:gap-4">
+        <div className="flex flex-wrap justify-center lg:justify-between items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <Image
               src="/images/fragbox_green_flat.png"

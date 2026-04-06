@@ -65,14 +65,12 @@ export default function EmbeddedWalletButton() {
         </div>
 
         {/* Deposit / Withdraw */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
-            Deposit
-          </button>
-          <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
-            Withdraw
-          </button>
-        </div>
+        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+          Deposit
+        </button>
+        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+          Withdraw
+        </button>
       </div>
     );
   }
