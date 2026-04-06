@@ -37,7 +37,7 @@ export default function EmbeddedWalletButton() {
     };
 
     return (
-      <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm">
+      <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm w-full max-w-md">
         {/* Address + copy */}
         <div className="flex items-center gap-2 bg-zinc-800 px-4 py-1.5 rounded-2xl">
           <div className="w-2 h-2 bg-lime-500 rounded-full"></div>
@@ -64,13 +64,15 @@ export default function EmbeddedWalletButton() {
           USDC <span className="text-lime-400">$0.00</span>
         </div>
 
-        {/* Deposit / Withdraw (small) */}
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
-          Deposit
-        </button>
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
-          Withdraw
-        </button>
+        {/* Deposit / Withdraw */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+            Deposit
+          </button>
+          <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-xs font-medium transition-colors">
+            Withdraw
+          </button>
+        </div>
       </div>
     );
   }
@@ -108,7 +110,7 @@ export default function EmbeddedWalletButton() {
   };
 
   return (
-    <div className="w-72 bg-zinc-900 border border-zinc-700 rounded-3xl p-5 flex flex-col min-h-[200px] text-sm">
+    <div className="w-72 bg-zinc-900 border border-zinc-700 rounded-3xl p-5 flex flex-col text-sm">
       {step === "initial" && (
         <button
           onClick={() => setStep("email")}

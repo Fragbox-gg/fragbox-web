@@ -141,12 +141,29 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
             <EmbeddedWalletButton />
           ) : (
             // CDP (wallet) is signed in
-            <div className="flex flex-col items-end gap-2">
-              {/* Wallet UI (now compact horizontal pill from above) */}
+            <div className="flex flex-col items-end gap-3">
+              {/* Wallet UI (compact horizontal pill) */}
               <EmbeddedWalletButton />
 
-              {!faceitUser && (
-                // STATE: WALLET SIGNED IN → show Faceit button UNDERNEATH
+              {/* Faceit profile or login button */}
+              {faceitUser ? (
+                // STATE: BOTH SIGNED IN → show picture + nickname
+                <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-700 rounded-3xl px-4 py-2 text-sm">
+                  <Image
+                    src={
+                      faceitUser?.picture || "/images/225-default-avatar.png"
+                    }
+                    alt="Faceit Profile"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                  <span className="font-medium text-white">
+                    {faceitUser?.nickname}
+                  </span>
+                </div>
+              ) : (
+                // STATE: WALLET SIGNED IN ONLY → show Faceit login button underneath
                 <FaceitLoginButton />
               )}
 
