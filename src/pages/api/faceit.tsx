@@ -44,10 +44,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const codeChallenge = generateCodeChallenge(codeVerifier);
   const state = crypto.randomBytes(16).toString("hex");
 
-  console.log("Generated code_verifier:", codeVerifier);
-  console.log("Generated code_challenge:", codeChallenge);
-  console.log("Generated state:", state);
-
   const clientId = process.env.FACEIT_OAUTH_CLIENT_ID;
   const redirectUri = process.env.FACEIT_OAUTH_REDIRECT_URI;
 

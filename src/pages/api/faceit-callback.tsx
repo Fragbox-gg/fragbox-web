@@ -37,17 +37,8 @@ export default async function handler(
     return decodeURIComponent(match[2]);
   };
 
-  console.log(
-    "Raw cookie header in callback:",
-    req.headers.cookie || "No cookies",
-  );
-
   const storedState = getCookieValue("oauth_state");
   const codeVerifier = getCookieValue("code_verifier");
-
-  console.log("Retrieved code_verifier:", codeVerifier);
-  console.log("Retrieved state:", storedState);
-  console.log("Received state from query:", state);
 
   if (!storedState || !codeVerifier || state !== storedState) {
     console.error("Invalid state or verifier");
@@ -113,7 +104,6 @@ export default async function handler(
   let userData: any = {};
   if (userResponse.ok) {
     userData = await userResponse.json();
-    console.log("Faceit user info:", userData);
   } else {
     console.warn("User info fetch failed, proceeding without it");
   }
