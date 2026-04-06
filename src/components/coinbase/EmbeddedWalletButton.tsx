@@ -140,7 +140,7 @@ export default function EmbeddedWalletButton() {
             onClick={() => setStep("initial")}
             className="text-xs text-zinc-400 hover:text-zinc-300 self-start"
           >
-            ← back
+            ← Back
           </button>
         </form>
       )}
@@ -168,7 +168,7 @@ export default function EmbeddedWalletButton() {
             onClick={() => setStep("email")}
             className="text-xs text-zinc-400 hover:text-zinc-300 self-start"
           >
-            ← change email
+            ← Change Email
           </button>
         </form>
       )}

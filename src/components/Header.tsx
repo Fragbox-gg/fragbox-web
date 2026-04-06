@@ -147,20 +147,29 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
 
               {/* Faceit profile or login button */}
               {faceitUser ? (
-                // STATE: BOTH SIGNED IN → show picture + nickname
-                <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-700 rounded-3xl px-4 py-2 text-sm">
-                  <Image
-                    src={
-                      faceitUser?.picture || "/images/225-default-avatar.png"
-                    }
-                    alt="Faceit Profile"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                  <span className="font-medium text-white">
-                    {faceitUser?.nickname}
-                  </span>
+                // STATE: BOTH SIGNED IN → Faceit profile + Logout on SAME ROW
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2.5 bg-zinc-900 border border-zinc-700 rounded-3xl px-4 py-2 text-sm">
+                    <Image
+                      src={
+                        faceitUser?.picture || "/images/225-default-avatar.png"
+                      }
+                      alt="Faceit Profile"
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                    <span className="font-medium text-white">
+                      {faceitUser?.nickname}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handleFullLogout}
+                    className="px-5 py-1.5 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-400 rounded-2xl transition-colors"
+                  >
+                    Logout
+                  </button>
                 </div>
               ) : (
                 // STATE: WALLET SIGNED IN ONLY → show Faceit login button underneath
@@ -168,12 +177,7 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
               )}
 
               {/* Logout always on the right when CDP is logged in */}
-              <button
-                onClick={handleFullLogout}
-                className="px-5 py-1.5 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-400 rounded-2xl transition-colors"
-              >
-                Logout
-              </button>
+              {/* (removed — now inside the Faceit row above when needed) */}
             </div>
           )}
         </div>
