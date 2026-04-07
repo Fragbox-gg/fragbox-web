@@ -33,7 +33,7 @@ const FaceitLoginButton = () => {
         active:scale-95                                /* Press-down effect */
       "
     >
-      <span className="hidden md:inline">Login with FACEIT</span>
+      <span className="hidden md:inline">Connect FACEIT</span>
       <Image
         src="/images/faceit_logo.jpg"
         alt="FACEIT Logo"

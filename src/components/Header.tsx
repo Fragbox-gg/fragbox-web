@@ -173,7 +173,16 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                 </div>
               ) : (
                 // STATE: WALLET SIGNED IN ONLY → show Faceit login button underneath
-                <FaceitLoginButton />
+                <div className="flex items-center gap-4">
+                  <FaceitLoginButton />
+
+                  <button
+                    onClick={handleFullLogout}
+                    className="px-5 py-1.5 text-xs font-medium text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-400 rounded-2xl transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
 
               {/* Logout always on the right when CDP is logged in */}
