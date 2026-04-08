@@ -1,9 +1,17 @@
 // In your component (assume this is a client component; add 'use client' at top if needed)
 import { useCallback } from "react";
 import Image from "next/image";
+import { useEvmAddress } from "@coinbase/cdp-hooks";
 
 const FaceitLoginButton = () => {
+  const { evmAddress } = useEvmAddress();
+
   const handleLogin = useCallback(() => {
+    if (evmAddress) {
+      // Set cookie for 5 minutes (plenty of time for the OAuth popup)
+      document.cookie = `embedded_wallet_address=${evmAddress}; Path=/; Max-Age=300; SameSite=Strict`;
+    }
+
     const popup = window.open("/api/faceit", "_blank", "width=500,height=600");
     const interval = setInterval(() => {
       if (popup?.closed) {

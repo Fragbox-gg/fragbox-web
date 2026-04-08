@@ -1,5 +1,8 @@
+// src/pages/api/faceit-callback.tsx
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Buffer } from "buffer";
+import { CdpClient } from "@coinbase/cdp-sdk";
+import { encodeFunctionData, parseEther } from "viem";
 
 export default async function handler(
   req: NextApiRequest,
@@ -93,7 +96,7 @@ export default async function handler(
 
   const tokenData = await tokenResponse.json();
 
-  // Fetch user info (unchanged)
+  // Fetch user info
   const userInfoUrl = "https://api.faceit.com/auth/v1/resources/userinfo";
   const userResponse = await fetch(userInfoUrl, {
     headers: {
@@ -107,6 +110,69 @@ export default async function handler(
   } else {
     console.warn("User info fetch failed, proceeding without it");
   }
+
+  /* ------------------- START OF ON CHAIN REGISTRATION CODE ------------------ */
+  const playerIdStr = userData.id; // Faceit player ID (this is what your contract expects)
+  const embeddedWalletAddress = getCookieValue("embedded_wallet_address");
+
+  if (playerIdStr && embeddedWalletAddress?.startsWith("0x")) {
+    try {
+      const cdp = new CdpClient();
+
+      const owner = await cdp.evm.getOrCreateAccount({
+        name: "fragbox-owner",
+      });
+
+      const smartAccount = await cdp.evm.getOrCreateSmartAccount({
+        name: "fragbox-owner",
+        owner: owner,
+      });
+
+      const data = encodeFunctionData({
+        abi: [
+          {
+            name: "registerPlayerWallet",
+            type: "function",
+            inputs: [
+              { name: "playerIdStr", type: "string" },
+              { name: "wallet", type: "address" },
+            ],
+            outputs: [],
+            stateMutability: "nonpayable",
+          },
+        ],
+        functionName: "registerPlayerWallet",
+        args: [playerIdStr, embeddedWalletAddress as `0x${string}`],
+      });
+
+      const result = await cdp.evm.sendUserOperation({
+        smartAccount: smartAccount,
+        network: "base-sepolia",
+        calls: [
+          {
+            to: process.env
+              .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS! as `0x${string}`,
+            value: parseEther("0"),
+            data,
+          },
+        ],
+        paymasterUrl: process.env.PAYMASTER_ENDPOINT!,
+      });
+
+      console.log(
+        "✅ Player wallet registered on-chain (gasless):",
+        result.userOpHash,
+      );
+    } catch (err) {
+      console.error("On-chain registration failed (non-blocking):", err);
+      // We still let the user finish login even if the tx fails
+    }
+  } else {
+    console.warn(
+      "Missing playerId or embedded wallet address — skipping on-chain link",
+    );
+  }
+  /* -------------------- END OF ON CHAIN REGISTRATION CODE ------------------- */
 
   // Set access token cookie manually
   const isProd = process.env.NODE_ENV === "production";

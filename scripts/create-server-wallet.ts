@@ -8,7 +8,9 @@ async function main() {
   const cdp = new CdpClient();
 
   // 1. Create the signer EOA (this never needs ETH)
-  const owner = await cdp.evm.createAccount();
+  const owner = await cdp.evm.createAccount({
+    name: "fragbox-owner",
+  });
   console.log("✅ Signer EOA created:", owner.address);
 
   // 2. Create the Smart Account (this will be the contract owner)

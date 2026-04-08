@@ -9,6 +9,8 @@ import {
   useCurrentUser,
   useSignOut,
 } from "@coinbase/cdp-hooks";
+import { useBalance } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -26,7 +28,15 @@ export default function EmbeddedWalletButton() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const smartAccount = currentUser?.evmSmartAccounts?.[0];
+  const { data: usdcBalanceData } = useBalance({
+    address: evmAddress as `0x${string}` | undefined,
+    token: process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`,
+    chainId: baseSepolia.id,
+  });
+
+  const usdcFormatted = usdcBalanceData?.formatted
+    ? Number(usdcBalanceData.formatted).toFixed(2)
+    : "0.00";
 
   // Connected state (compact)
   if (isSignedIn && evmAddress) {
@@ -65,7 +75,7 @@ export default function EmbeddedWalletButton() {
 
         {/* Balance */}
         <div className="font-medium">
-          <span className="text-lime-400">$0.00</span>
+          <span className="text-lime-400">${usdcFormatted}</span>
         </div>
 
         {/* Deposit / Withdraw */}
