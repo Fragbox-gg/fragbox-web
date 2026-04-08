@@ -114,7 +114,7 @@ export default async function handler(
   }
 
   /* ------------------- START OF ON CHAIN REGISTRATION CODE ------------------ */
-  const playerIdStr = userData.id; // Faceit player ID
+  const playerIdStr = userData.guid; // Faceit player ID
   const embeddedWalletAddress = getCookieValue("embedded_wallet_address");
 
   if (playerIdStr && embeddedWalletAddress?.startsWith("0x")) {
