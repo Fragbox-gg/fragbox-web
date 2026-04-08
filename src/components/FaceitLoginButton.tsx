@@ -8,10 +8,9 @@ const FaceitLoginButton = () => {
 
   const handleLogin = useCallback(() => {
     if (evmAddress) {
-      // Set cookie for 5 minutes (plenty of time for the OAuth popup)
+      // Set cookie for 10 minutes (plenty of time for the OAuth popup)
       const isProd = process.env.NODE_ENV === "production";
       document.cookie = `embedded_wallet_address=${evmAddress}; Path=/; Max-Age=600; SameSite=Lax${isProd ? "; Secure" : ""}`;
-      console.log("✅ embedded_wallet_address cookie set:", evmAddress);
     }
 
     const popup = window.open("/api/faceit", "_blank", "width=500,height=600");

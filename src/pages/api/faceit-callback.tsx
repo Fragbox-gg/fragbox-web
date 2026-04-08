@@ -116,8 +116,6 @@ export default async function handler(
   const playerIdStr = userData.guid; // Faceit player ID (this is what your contract expects)
   const embeddedWalletAddress = getCookieValue("embedded_wallet_address");
 
-  console.log(playerIdStr, embeddedWalletAddress);
-
   if (playerIdStr && embeddedWalletAddress?.startsWith("0x")) {
     try {
       const cdp = new CdpClient();
