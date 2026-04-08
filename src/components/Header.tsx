@@ -50,12 +50,6 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
     const { registeredWallet, isLoading, error } = useRegisteredWallet(
       faceitUser.guid,
     );
-
-    console.log("REGISTERED WALLET");
-    console.log(faceitUser.guid);
-    console.log(registeredWallet);
-    console.log(isLoading);
-    console.log(error);
   }
 
   return (

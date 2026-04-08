@@ -2,8 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Buffer } from "buffer";
 import { CdpClient } from "@coinbase/cdp-sdk";
-import { encodeFunctionData, parseEther } from "viem";
+import { encodeFunctionData, parseEther, createPublicClient, http } from "viem";
 import { fragBoxBettingAbi } from "@/constants/abi";
+import { baseSepolia } from "viem/chains";
 
 export default async function handler(
   req: NextApiRequest,
@@ -113,7 +114,7 @@ export default async function handler(
   }
 
   /* ------------------- START OF ON CHAIN REGISTRATION CODE ------------------ */
-  const playerIdStr = userData.guid; // Faceit player ID (this is what your contract expects)
+  const playerIdStr = userData.id; // Faceit player ID
   const embeddedWalletAddress = getCookieValue("embedded_wallet_address");
 
   if (playerIdStr && embeddedWalletAddress?.startsWith("0x")) {
@@ -129,33 +130,61 @@ export default async function handler(
         owner: owner,
       });
 
-      const data = encodeFunctionData({
+      const contractAddress = process.env
+        .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS! as `0x${string}`;
+
+      // 1. Check if this player already has the exact same wallet registered
+      const publicClient = createPublicClient({
+        chain: baseSepolia,
+        transport: http(),
+      });
+
+      const registeredWallet = await publicClient.readContract({
+        address: contractAddress,
         abi: fragBoxBettingAbi,
-        functionName: "registerPlayerWallet",
-        args: [playerIdStr, embeddedWalletAddress as `0x${string}`],
+        functionName: "getRegisteredWallet",
+        args: [playerIdStr],
       });
 
-      const result = await cdp.evm.sendUserOperation({
-        smartAccount: smartAccount,
-        network: "base-sepolia",
-        calls: [
-          {
-            to: process.env
-              .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS! as `0x${string}`,
-            value: parseEther("0"),
-            data,
-          },
-        ],
-        paymasterUrl: process.env.PAYMASTER_ENDPOINT!,
-      });
+      if (
+        registeredWallet.toLowerCase() ===
+          embeddedWalletAddress.toLowerCase() &&
+        registeredWallet !== "0x0000000000000000000000000000000000000000"
+      ) {
+        console.log(
+          `✅ Player ${playerIdStr} already has this wallet registered. Skipping transaction.`,
+        );
+      } else {
+        // 2. Wallet is different or not registered → send the transaction
+        console.log(`🔄 Registering wallet for player ${playerIdStr}...`);
 
-      console.log(
-        "✅ Player wallet registered on-chain (gasless):",
-        result.userOpHash,
-      );
+        const data = encodeFunctionData({
+          abi: fragBoxBettingAbi,
+          functionName: "registerPlayerWallet",
+          args: [playerIdStr, embeddedWalletAddress as `0x${string}`],
+        });
+
+        const result = await cdp.evm.sendUserOperation({
+          smartAccount: smartAccount,
+          network: "base-sepolia",
+          calls: [
+            {
+              to: contractAddress,
+              value: parseEther("0"),
+              data,
+            },
+          ],
+          paymasterUrl: process.env.PAYMASTER_ENDPOINT!,
+        });
+
+        console.log(
+          "✅ Player wallet registered on-chain (gasless):",
+          result.userOpHash,
+        );
+      }
     } catch (err) {
-      console.error("On-chain registration failed (non-blocking):", err);
-      // We still let the user finish login even if the tx fails
+      console.error("On-chain registration/check failed (non-blocking):", err);
+      // We still let the user finish login even if something fails
     }
   } else {
     console.warn(
