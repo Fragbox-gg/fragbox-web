@@ -12,6 +12,7 @@ import { FaceitUserInfoProps } from "../pages/api/faceit";
 import Image from "next/image";
 import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
 import { useIsSignedIn, useSignOut } from "@coinbase/cdp-hooks";
+import { useRegisteredWallet } from "@/hooks/useRegisteredWallet";
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
   const { isSignedIn: isCdpSignedIn } = useIsSignedIn();
@@ -44,6 +45,18 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
       window.location.href = "/";
     }
   };
+
+  if (faceitUser) {
+    const { registeredWallet, isLoading, error } = useRegisteredWallet(
+      faceitUser.guid,
+    );
+
+    console.log("REGISTERED WALLET");
+    console.log(faceitUser.guid);
+    console.log(registeredWallet);
+    console.log(isLoading);
+    console.log(error);
+  }
 
   return (
     <header className="glass-header sticky top-0 z-20">

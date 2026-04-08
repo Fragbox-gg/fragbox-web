@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Buffer } from "buffer";
 import { CdpClient } from "@coinbase/cdp-sdk";
 import { encodeFunctionData, parseEther } from "viem";
+import { fragBoxBettingAbi } from "@/constants/abi";
 
 export default async function handler(
   req: NextApiRequest,
@@ -112,8 +113,10 @@ export default async function handler(
   }
 
   /* ------------------- START OF ON CHAIN REGISTRATION CODE ------------------ */
-  const playerIdStr = userData.id; // Faceit player ID (this is what your contract expects)
+  const playerIdStr = userData.guid; // Faceit player ID (this is what your contract expects)
   const embeddedWalletAddress = getCookieValue("embedded_wallet_address");
+
+  console.log(playerIdStr, embeddedWalletAddress);
 
   if (playerIdStr && embeddedWalletAddress?.startsWith("0x")) {
     try {
@@ -129,18 +132,7 @@ export default async function handler(
       });
 
       const data = encodeFunctionData({
-        abi: [
-          {
-            name: "registerPlayerWallet",
-            type: "function",
-            inputs: [
-              { name: "playerIdStr", type: "string" },
-              { name: "wallet", type: "address" },
-            ],
-            outputs: [],
-            stateMutability: "nonpayable",
-          },
-        ],
+        abi: fragBoxBettingAbi,
         functionName: "registerPlayerWallet",
         args: [playerIdStr, embeddedWalletAddress as `0x${string}`],
       });
@@ -193,5 +185,5 @@ export default async function handler(
     </html>
   `;
   res.setHeader("Content-Type", "text/html");
-  res.status(200).send(successHtml);
+  // res.status(200).send(successHtml);
 }
