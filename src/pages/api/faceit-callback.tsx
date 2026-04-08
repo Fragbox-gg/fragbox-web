@@ -183,5 +183,5 @@ export default async function handler(
     </html>
   `;
   res.setHeader("Content-Type", "text/html");
-  // res.status(200).send(successHtml);
+  res.status(200).send(successHtml);
 }
