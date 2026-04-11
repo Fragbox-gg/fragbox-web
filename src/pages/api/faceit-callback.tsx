@@ -4,7 +4,7 @@ import { Buffer } from "buffer";
 import { CdpClient } from "@coinbase/cdp-sdk";
 import { encodeFunctionData, parseEther, createPublicClient, http } from "viem";
 import { fragBoxBettingAbi } from "@/constants/abi";
-import { selectedBaseChain, selectedBaseNetwork } from "@/wagmi";
+import { selectedBaseChain, selectedBaseNetwork, isTestBase } from "@/wagmi";
 
 export default async function handler(
   req: NextApiRequest,
@@ -174,7 +174,9 @@ export default async function handler(
               data,
             },
           ],
-          paymasterUrl: process.env.PAYMASTER_ENDPOINT!,
+          paymasterUrl: isTestBase
+            ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
+            : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT,
         });
 
         console.log(

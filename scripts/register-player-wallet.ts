@@ -17,7 +17,7 @@ import { CdpClient } from "@coinbase/cdp-sdk";
 import dotenv from "dotenv";
 import { encodeFunctionData, parseEther } from "viem";
 import { fragBoxBettingAbi } from "../src/constants/abi";
-import { selectedBaseNetwork } from "../src/wagmi";
+import { selectedBaseNetwork, isTestBase } from "../src/wagmi";
 
 dotenv.config();
 
@@ -89,7 +89,9 @@ async function main() {
           data,
         },
       ],
-      paymasterUrl: process.env.PAYMASTER_ENDPOINT!,
+      paymasterUrl: isTestBase
+        ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
+        : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT,
     });
 
     console.log(`✅ UserOp submitted! Hash: ${result.userOpHash}`);
