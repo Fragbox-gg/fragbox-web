@@ -11,6 +11,7 @@ import {
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
 import { selectedBaseChain, isTestBase } from "@/wagmi";
+import { toast } from "sonner";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -33,6 +34,9 @@ export default function EmbeddedWalletButton() {
     address: evmAddress as `0x${string}` | undefined,
     token: process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`,
     chainId: selectedBaseChain.id,
+    query: {
+      enabled: !!evmAddress,
+    },
   });
 
   const usdcFormatted = usdcBalanceData?.formatted
@@ -53,24 +57,21 @@ export default function EmbeddedWalletButton() {
       const data = await res.json();
 
       if (data.success) {
-        // Optional: show a nice toast instead of alert
-        alert(data.message); // you can replace with your toast library later
-
-        // Refresh the USDC balance (your component already has balance logic)
-        // If you're using a query or wagmi/viem hook, invalidate/refetch here
-        // For example: queryClient.invalidateQueries({ queryKey: ['usdcBalance'] });
-        // or call your existing balance refetch function
+        toast.success(data.message || "✅ 1 test USDC sent!", {
+          description: "Wait a bit and then refresh",
+        });
       } else {
-        alert(`❌ ${data.error}`);
+        toast.error(data.error || "Failed to get test USDC");
       }
     } catch (err) {
-      alert("Something went wrong. Check console.");
+      toast.error("Something went wrong.");
       console.error(err);
     } finally {
       setFaucetLoading(false);
     }
   };
 
+  // TODO
   const handleMainnetDeposit = async () => {};
 
   // Connected state (compact)
@@ -100,7 +101,6 @@ export default function EmbeddedWalletButton() {
             📋
           </span>
 
-          {/* Copied message – now correctly positioned */}
           {copied && (
             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-zinc-800 text-lime-400 text-xs px-3 py-1 rounded-2xl shadow-lg whitespace-nowrap z-50 border border-zinc-600">
               wallet address copied

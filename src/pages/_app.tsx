@@ -6,6 +6,7 @@ import Head from "next/head";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { Toaster } from "sonner";
 
 import { config } from "../wagmi";
 
@@ -42,6 +43,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               }}
             >
               <Component {...pageProps} />
+              <Toaster position="top-right" richColors closeButton />
             </CDPReactProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
