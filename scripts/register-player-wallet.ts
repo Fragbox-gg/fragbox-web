@@ -17,6 +17,7 @@ import { CdpClient } from "@coinbase/cdp-sdk";
 import dotenv from "dotenv";
 import { encodeFunctionData, parseEther } from "viem";
 import { fragBoxBettingAbi } from "../src/constants/abi";
+import { selectedBaseNetwork } from "../src/wagmi";
 
 dotenv.config();
 
@@ -42,7 +43,7 @@ async function main() {
     process.exit(1);
   }
 
-  const network = process.env.NETWORK || "base-sepolia";
+  const network = selectedBaseNetwork;
   const contractAddress = process.env
     .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -53,9 +54,10 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`🔄 Registering player wallet on ${network}`);
+  console.log(`🔄 Registering player wallet`);
   console.log(`   Player ID : ${playerId}`);
   console.log(`   Wallet    : ${walletAddress}`);
+  console.log(`   Network   : ${network}`);
   console.log(`   Contract  : ${contractAddress}\n`);
 
   try {
@@ -79,7 +81,7 @@ async function main() {
 
     const result = await cdp.evm.sendUserOperation({
       smartAccount: smartAccount,
-      network: "base-sepolia",
+      network,
       calls: [
         {
           to: contractAddress,

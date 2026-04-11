@@ -1,8 +1,8 @@
 "use client";
 
 import { useReadContract } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
 import { fragBoxBettingAbi } from "@/constants/abi";
+import { selectedBaseChain } from "@/wagmi";
 
 export function useRegisteredWallet(faceitGuid: string | undefined) {
   const contractAddress = process.env
@@ -18,7 +18,7 @@ export function useRegisteredWallet(faceitGuid: string | undefined) {
     abi: fragBoxBettingAbi,
     functionName: "getRegisteredWallet",
     args: faceitGuid ? [faceitGuid] : undefined,
-    chainId: baseSepolia.id,
+    chainId: selectedBaseChain.id,
     query: {
       enabled: !!contractAddress && !!faceitGuid, // only run when we have both
     },

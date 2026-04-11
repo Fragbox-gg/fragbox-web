@@ -10,7 +10,7 @@ import {
   useSignOut,
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { selectedBaseChain, isTestBase } from "@/wagmi";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -27,16 +27,51 @@ export default function EmbeddedWalletButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [faucetLoading, setFaucetLoading] = useState(false);
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
     token: process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`,
-    chainId: baseSepolia.id,
+    chainId: selectedBaseChain.id,
   });
 
   const usdcFormatted = usdcBalanceData?.formatted
     ? Number(usdcBalanceData.formatted).toFixed(2)
     : "0.00";
+
+  const handleGetTestUsdc = async () => {
+    if (!evmAddress) return;
+
+    setFaucetLoading(true);
+    try {
+      const res = await fetch("/api/faucet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: evmAddress }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Optional: show a nice toast instead of alert
+        alert(data.message); // you can replace with your toast library later
+
+        // Refresh the USDC balance (your component already has balance logic)
+        // If you're using a query or wagmi/viem hook, invalidate/refetch here
+        // For example: queryClient.invalidateQueries({ queryKey: ['usdcBalance'] });
+        // or call your existing balance refetch function
+      } else {
+        alert(`❌ ${data.error}`);
+      }
+    } catch (err) {
+      alert("Something went wrong. Check console.");
+      console.error(err);
+    } finally {
+      setFaucetLoading(false);
+    }
+  };
+
+  const handleMainnetDeposit = async () => {};
 
   // Connected state (compact)
   if (isSignedIn && evmAddress) {
@@ -78,10 +113,16 @@ export default function EmbeddedWalletButton() {
           <span className="text-lime-400">${usdcFormatted}</span>
         </div>
 
-        {/* Deposit / Withdraw */}
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors">
+        {/* Deposit */}
+        <button
+          onClick={isTestBase ? handleGetTestUsdc : handleMainnetDeposit}
+          disabled={faucetLoading}
+          className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
+        >
           Deposit
         </button>
+
+        {/* Withdraw */}
         <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors">
           Withdraw
         </button>

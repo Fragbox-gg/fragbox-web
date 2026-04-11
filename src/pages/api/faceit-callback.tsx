@@ -4,7 +4,7 @@ import { Buffer } from "buffer";
 import { CdpClient } from "@coinbase/cdp-sdk";
 import { encodeFunctionData, parseEther, createPublicClient, http } from "viem";
 import { fragBoxBettingAbi } from "@/constants/abi";
-import { baseSepolia } from "viem/chains";
+import { selectedBaseChain, selectedBaseNetwork } from "@/wagmi";
 
 export default async function handler(
   req: NextApiRequest,
@@ -135,7 +135,7 @@ export default async function handler(
 
       // 1. Check if this player already has the exact same wallet registered
       const publicClient = createPublicClient({
-        chain: baseSepolia,
+        chain: selectedBaseChain,
         transport: http(),
       });
 
@@ -166,7 +166,7 @@ export default async function handler(
 
         const result = await cdp.evm.sendUserOperation({
           smartAccount: smartAccount,
-          network: "base-sepolia",
+          network: selectedBaseNetwork,
           calls: [
             {
               to: contractAddress,

@@ -17,6 +17,7 @@
 import { CdpClient } from "@coinbase/cdp-sdk";
 import dotenv from "dotenv";
 import { parseEther } from "viem";
+import { selectedBaseNetwork } from "../src/wagmi";
 
 dotenv.config();
 
@@ -32,9 +33,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Network – change to "base-sepolia" if your server wallet is on testnet
-  // Change to "base" on mainnet
-  const network = "base-sepolia";
+  // Network is controlled by NEXT_PUBLIC_BASE_NETWORK in src/wagmi.ts
+  const network = selectedBaseNetwork;
 
   const cdp = new CdpClient();
 

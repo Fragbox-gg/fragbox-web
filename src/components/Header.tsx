@@ -46,11 +46,7 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
     }
   };
 
-  if (faceitUser) {
-    const { registeredWallet, isLoading, error } = useRegisteredWallet(
-      faceitUser.guid,
-    );
-  }
+  useRegisteredWallet(faceitUser?.guid);
 
   return (
     <header className="glass-header sticky top-0 z-20">
