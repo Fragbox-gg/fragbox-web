@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   useSignInWithEmail,
   useVerifyEmailOTP,
@@ -41,6 +41,12 @@ export default function EmbeddedWalletButton() {
   const [faucetLoading, setFaucetLoading] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [userCountry, setUserCountry] = useState<string>("US");
+  const [userSubdivision, setUserSubdivision] = useState<string | undefined>(
+    "OH",
+  );
+
+  console.log(userCountry, userSubdivision);
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
@@ -120,12 +126,37 @@ export default function EmbeddedWalletButton() {
       setTimeout(() => setCopied(false), 2000);
     };
 
-    // TODO
-    // Get the user's location (i.e. from IP geolocation)
-    const userCountry = "US";
+    useEffect(() => {
+      const fetchLocation = async () => {
+        try {
+          // ?fields= limits the response to only what we need (tiny payload)
+          const res = await fetch(
+            "https://ip-api.com/json?fields=status,countryCode,region",
+          );
+          const data = await res.json();
 
-    // If user is in the US, the state is also required
-    const userSubdivision = userCountry === "US" ? "CA" : undefined;
+          if (data.status === "success") {
+            setUserCountry(data.countryCode || "US");
+
+            // Only send subdivision for US users (Coinbase requirement)
+            if (data.countryCode === "US" && data.region) {
+              setUserSubdivision(data.region); // e.g. "OH", "CA", "NY"
+            } else {
+              setUserSubdivision(undefined);
+            }
+          } else {
+            console.warn(
+              "IP geolocation failed - falling back to US",
+              data.status,
+            );
+          }
+        } catch (err) {
+          console.warn("IP geolocation failed - falling back to US", err);
+        }
+      };
+
+      fetchLocation();
+    }, []);
 
     return (
       <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm w-full max-w-md">
