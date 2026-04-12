@@ -17,6 +17,13 @@ import {
   FundFooter,
   FundTitle,
 } from "@coinbase/cdp-react";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import {
+  Popover,
+  Transition,
+  PopoverButton,
+  PopoverPanel,
+} from "@headlessui/react";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -169,19 +176,48 @@ export default function EmbeddedWalletButton() {
             </button>
 
             {showFundModal && (
-              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                <div className="bg-zinc-900 rounded-3xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">Deposit USDC</h2>
+              <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl shadow-lime-500/10 relative">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-2xl font-semibold text-white tracking-tight flex items-center gap-2">
+                        <span className="text-lime-400">⟡</span>
+                        Deposit USDC
+                      </h2>
+
+                      {/* ? Help icon */}
+                      <Popover className="relative">
+                        <PopoverButton className="p-1 rounded-full hover:bg-zinc-900/40 transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500/50">
+                          <QuestionMarkCircleIcon className="h-5 w-5 text-lime-400 hover:text-lime-300" />
+                        </PopoverButton>
+
+                        <PopoverPanel className="absolute left-0 top-10 z-50 w-72 bg-zinc-800 border border-zinc-700 rounded-3xl p-4 shadow-xl text-sm text-zinc-300">
+                          <div className="font-medium text-lime-400 mb-2">
+                            How deposits work
+                          </div>
+                          <p>
+                            This buys USDC on the Base network using Coinbase
+                            Pay and sends it instantly to your Fragbox wallet.
+                            You'll see the exact amount after fees before
+                            confirming.
+                          </p>
+                          <div className="text-[10px] text-zinc-500 mt-3 flex items-center gap-1">
+                            <span>🔒</span>
+                            Secured by Coinbase • Powered by Fragbox
+                          </div>
+                        </PopoverPanel>
+                      </Popover>
+                    </div>
+
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="text-zinc-400 hover:text-white text-xl leading-none"
+                      className="text-zinc-400 hover:text-white text-3xl leading-none transition-colors"
                     >
-                      ✕
+                      x
                     </button>
                   </div>
 
-                  {/* CUSTOM FUND MODAL */}
+                  {/* Coinbase Fund component */}
                   <Fund
                     country={userCountry}
                     subdivision={userSubdivision}
