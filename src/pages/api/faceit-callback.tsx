@@ -130,8 +130,11 @@ export default async function handler(
         owner: owner,
       });
 
-      const contractAddress = process.env
-        .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS! as `0x${string}`;
+      const contractAddress = (
+        isTestBase
+          ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
+          : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
+      ) as `0x${string}`;
 
       // 1. Check if this player already has the exact same wallet registered
       const publicClient = createPublicClient({

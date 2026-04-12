@@ -2,11 +2,14 @@
 
 import { useReadContract } from "wagmi";
 import { fragBoxBettingAbi } from "@/constants/abi";
-import { selectedBaseChain } from "@/wagmi";
+import { selectedBaseChain, isTestBase } from "@/wagmi";
 
 export function useRegisteredWallet(faceitGuid: string | undefined) {
-  const contractAddress = process.env
-    .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS as `0x${string}` | undefined;
+  const contractAddress = (
+    isTestBase
+      ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
+      : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
+  ) as `0x${string}` | undefined;
 
   const {
     data: registeredWallet,

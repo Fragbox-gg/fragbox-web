@@ -6,8 +6,6 @@ import {
   useVerifyEmailOTP,
   useIsSignedIn,
   useEvmAddress,
-  useCurrentUser,
-  useSignOut,
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
 import { selectedBaseChain, isTestBase } from "@/wagmi";
@@ -18,8 +16,6 @@ export default function EmbeddedWalletButton() {
   const { verifyEmailOTP } = useVerifyEmailOTP();
   const { isSignedIn } = useIsSignedIn();
   const { evmAddress } = useEvmAddress();
-  const { currentUser } = useCurrentUser();
-  const { signOut } = useSignOut();
 
   const [step, setStep] = useState<"initial" | "email" | "otp">("initial");
   const [email, setEmail] = useState("");
@@ -32,7 +28,9 @@ export default function EmbeddedWalletButton() {
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
-    token: process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`,
+    token: (isTestBase
+      ? process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA
+      : process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_MAINNET) as `0x${string}`,
     chainId: selectedBaseChain.id,
     query: {
       enabled: !!evmAddress,
