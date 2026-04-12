@@ -41,9 +41,9 @@ export default function EmbeddedWalletButton() {
   const [faucetLoading, setFaucetLoading] = useState(false);
   const [showFundModal, setShowFundModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [userCountry, setUserCountry] = useState<string>("US");
+  const [userCountry, setUserCountry] = useState<string | undefined>(undefined);
   const [userSubdivision, setUserSubdivision] = useState<string | undefined>(
-    "OH",
+    undefined,
   );
 
   console.log(userCountry, userSubdivision);
@@ -115,6 +115,10 @@ export default function EmbeddedWalletButton() {
 
   const handleMainnetDeposit = async () => {
     if (!evmAddress) return;
+    if (userCountry === undefined) {
+      toast.error("Failed to get user geolocation data");
+      return;
+    }
     setShowFundModal(true);
   };
 
@@ -251,7 +255,7 @@ export default function EmbeddedWalletButton() {
 
                   {/* Coinbase Fund component */}
                   <Fund
-                    country={userCountry}
+                    country={userCountry || ""}
                     subdivision={userSubdivision}
                     cryptoCurrency="USDC"
                     fiatCurrency="usd"
