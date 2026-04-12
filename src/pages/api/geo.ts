@@ -35,7 +35,12 @@ export default async function handler(
   }
 
   try {
-    const apiRes = await fetch("https://free.freeipapi.com/api/json", {
+    const url =
+      clientIP && clientIP !== "unknown" && clientIP !== "::1"
+        ? `https://free.freeipapi.com/api/json/${encodeURIComponent(clientIP)}`
+        : "https://free.freeipapi.com/api/json";
+
+    const apiRes = await fetch(url, {
       signal: AbortSignal.timeout(5000),
     });
 
