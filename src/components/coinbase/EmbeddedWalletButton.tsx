@@ -6,8 +6,10 @@ import {
   useVerifyEmailOTP,
   useIsSignedIn,
   useEvmAddress,
+  useSendUserOperation,
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
+import { parseEther, parseUnits, erc20Abi, encodeFunctionData } from "viem";
 import { selectedBaseNetwork, selectedBaseChain, isTestBase } from "@/wagmi";
 import { toast } from "sonner";
 import {
@@ -15,15 +17,9 @@ import {
   type FundProps,
   FundForm,
   FundFooter,
-  FundTitle,
 } from "@coinbase/cdp-react";
 import { QuestionMarkCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import {
-  Popover,
-  Transition,
-  PopoverButton,
-  PopoverPanel,
-} from "@headlessui/react";
+import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -262,24 +258,58 @@ export default function EmbeddedWalletButton() {
           </>
         )}
 
-        {/* Introduce FundsModal for mainnet withdrawal (off-ramp) */}
+        {/* Withdraw Button */}
         {isTestBase ? (
           <button
-            disabled
-            title="Withdraw not available on testnet - only external wallet transfers supported"
-            className="px-4 py-1 bg-zinc-800 text-zinc-500 rounded-2xl text-xs font-medium cursor-not-allowed opacity-50"
+            onClick={() => setShowWithdrawModal(true)}
+            className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
           >
             Withdraw
           </button>
         ) : (
-          <>
-            <button
-              onClick={() => setShowWithdrawModal(true)}
-              className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
-            >
-              Withdraw
-            </button>
-          </>
+          <button
+            onClick={() => setShowWithdrawModal(true)}
+            className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
+          >
+            Withdraw
+          </button>
+        )}
+
+        {/* === WITHDRAW MODAL === */}
+        {showWithdrawModal && (
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] backdrop-blur-sm">
+            <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl shadow-lime-500/10 relative">
+              <div className="flex justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-white">
+                  {isTestBase
+                    ? "Send Testnet USDC on Base Sepolia"
+                    : "Cash Out via Coinbase"}
+                </h2>
+                <button
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {isTestBase ? (
+                /* TESTNET TRANSFER FORM */
+                <TestnetWithdrawForm
+                  evmAddress={evmAddress}
+                  onClose={() => setShowWithdrawModal(false)}
+                />
+              ) : (
+                /* MAINNET OFFRAMP */
+                <MainnetOfframpForm
+                  evmAddress={evmAddress}
+                  userCountry={userCountry}
+                  userSubdivision={userSubdivision}
+                  onClose={() => setShowWithdrawModal(false)}
+                />
+              )}
+            </div>
+          </div>
         )}
       </div>
     );
@@ -390,6 +420,190 @@ export default function EmbeddedWalletButton() {
         <span>Powered by</span>
         <span className="font-medium">Coinbase</span>
       </div>
+    </div>
+  );
+}
+
+// Testnet form (simple send from Coinbase Smart Wallet)
+function TestnetWithdrawForm({
+  evmAddress,
+  onClose,
+}: {
+  evmAddress: string;
+  onClose: () => void;
+}) {
+  const { sendUserOperation, status } = useSendUserOperation();
+  const [amount, setAmount] = useState("");
+  const [to, setTo] = useState("");
+
+  const handleSend = async () => {
+    if (!amount || !to) {
+      return toast.error("Please enter amount and destination address");
+    }
+    if (!evmAddress) return;
+
+    // Encode a normal ERC-20 `transfer` call
+    const data = encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "transfer",
+      args: [to as `0x${string}`, parseUnits(amount, 6)],
+    });
+
+    try {
+      const result = await sendUserOperation({
+        evmSmartAccount: evmAddress as `0x${string}`,
+        network: selectedBaseNetwork,
+        calls: [
+          {
+            to: process.env
+              .NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA as `0x${string}`,
+            value: parseEther("0"),
+            data,
+          },
+        ],
+        useCdpPaymaster: true,
+        paymasterUrl: process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT,
+      });
+
+      toast.success("✅ Test USDC sent successfully!", {
+        description: "Tx Hash: " + result.userOperationHash,
+      });
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Transaction failed");
+      console.error(err);
+    }
+  };
+
+  const isPending = status === "pending";
+
+  return (
+    <div className="space-y-6">
+      {/* Amount */}
+      <div>
+        <label className="block text-xs text-zinc-400 mb-1">
+          Amount (USDC)
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Destination Address */}
+      <div>
+        <label className="block text-xs text-zinc-400 mb-1">
+          Send to address
+        </label>
+        <input
+          type="text"
+          placeholder="0x..."
+          value={to}
+          onChange={(e) => setTo(e.target.value)}
+          className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 font-mono outline-none"
+        />
+      </div>
+
+      <button
+        onClick={handleSend}
+        disabled={isPending || !amount || !to}
+        className="w-full py-3 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-semibold rounded-2xl transition-colors disabled:opacity-50"
+      >
+        {isPending ? "Sending on Base Sepolia..." : "Send USDC"}
+      </button>
+
+      <p className="text-[14px] text-zinc-500 text-center">
+        This transfers testnet USDC from your Coinbase smart wallet
+      </p>
+    </div>
+  );
+}
+
+// Mainnet Offramp form
+function MainnetOfframpForm({
+  evmAddress,
+  userCountry,
+  userSubdivision,
+  onClose,
+}: {
+  evmAddress: string;
+  userCountry?: string;
+  userSubdivision?: string;
+  onClose: () => void;
+}) {
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCashOut = async () => {
+    if (!amount || Number(amount) <= 0) {
+      return toast.error("Enter a valid amount");
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/offramp/sell-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          country: userCountry || "US",
+          subdivision: userSubdivision,
+          sellAmount: amount,
+          sourceAddress: evmAddress,
+        }),
+      });
+
+      const data = await res.json();
+
+      // Coinbase usually returns `url` (sometimes `offramp_url` or `checkoutUrl`)
+      const redirectUrl = data.url || data.offramp_url || data.checkoutUrl;
+
+      if (redirectUrl) {
+        window.open(redirectUrl, "_blank");
+        onClose();
+      } else {
+        toast.error(data.error?.message || data.error || "Failed to get quote");
+      }
+    } catch (e) {
+      toast.error("Network error – please try again");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-xs text-zinc-400 mb-1">
+          Amount to cash out (USDC)
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          placeholder="0.00"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
+        />
+      </div>
+
+      <button
+        onClick={handleCashOut}
+        disabled={loading || !amount}
+        className="w-full py-3 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-semibold rounded-2xl transition-colors disabled:opacity-50"
+      >
+        {loading ? "Loading Coinbase Offramp..." : "Continue to Coinbase"}
+      </button>
+
+      <p className="text-xs text-zinc-400 text-center">
+        You&apos;ll be redirected to Coinbase to complete the cash-out
+      </p>
     </div>
   );
 }
