@@ -10,7 +10,13 @@ import {
 import { useBalance } from "wagmi";
 import { selectedBaseNetwork, selectedBaseChain, isTestBase } from "@/wagmi";
 import { toast } from "sonner";
-import { Fund, type FundProps } from "@coinbase/cdp-react";
+import {
+  Fund,
+  type FundProps,
+  FundForm,
+  FundFooter,
+  FundTitle,
+} from "@coinbase/cdp-react";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -188,12 +194,12 @@ export default function EmbeddedWalletButton() {
                     destinationAddress={evmAddress}
                     onSuccess={(tx) => {
                       toast.success("Deposit successful!");
-                      setShowFundModal(false); // close your modal
+                      setShowFundModal(false);
                     }}
-                    // Optional styling/customization props
-                    // submitLabel="Buy USDC"
-                    // title="Buy USDC on Base"
-                  />
+                  >
+                    <FundForm submitLabel="Deposit USDC" />
+                    <FundFooter />
+                  </Fund>
                 </div>
               </div>
             )}
