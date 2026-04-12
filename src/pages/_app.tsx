@@ -25,23 +25,15 @@ const fragboxTheme: Partial<Theme> = {
   "colors-fg-default": "#f4f4f5", // zinc-100 / near white
   "colors-fg-muted": "#a1a1aa", // zinc-400
 
-  // Primary accent → your neon lime
-  "colors-primary": "#65A30D", // lime-600
-  "colors-bg-primary": "#65A30D",
-  "colors-bg-primary-hover": "#84CC16", // lime-500 on hover
-  "colors-bg-primary-active": "#A3E635", // lime-400
-
-  // Buttons & CTAs
-  "colors-cta-primary": "#65A30D",
-  "colors-cta-primary-hover": "#84CC16",
+  // Primary accent
+  "colors-bg-primary": "#65A30D", // lime-600
+  "colors-fg-primary": "#65A30D", // accent text/links
+  "colors-fg-onPrimary": "#0a0b0d", // dark text on lime buttons
 
   // Borders & dividers
   "colors-line-default": "#3f3f46", // zinc-700
 
-  // Radius — matches your rounded-3xl
-  "border-radius-button": "1.5rem", // 24px = 3xl
-  "border-radius-card": "1.5rem",
-  "border-radius-input": "1.5rem",
+  "colors-bg-contrast": "#f4f4f5", // used to calculate hover/pressed mixes
 };
 
 function MyApp({ Component, pageProps }: AppProps) {

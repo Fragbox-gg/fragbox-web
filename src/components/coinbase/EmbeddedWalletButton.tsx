@@ -46,7 +46,23 @@ export default function EmbeddedWalletButton() {
     undefined,
   );
 
-  console.log(userCountry, userSubdivision);
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const res = await fetch("/api/geo");
+        const data = await res.json();
+
+        setUserCountry(data.countryCode);
+        setUserSubdivision(data.subdivision);
+      } catch (err) {
+        console.warn("IP geolocation failed", err);
+        setUserCountry(undefined);
+        setUserSubdivision(undefined);
+      }
+    };
+
+    fetchLocation();
+  }, []);
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
@@ -130,38 +146,6 @@ export default function EmbeddedWalletButton() {
       setTimeout(() => setCopied(false), 2000);
     };
 
-    useEffect(() => {
-      const fetchLocation = async () => {
-        try {
-          // ?fields= limits the response to only what we need (tiny payload)
-          const res = await fetch(
-            "https://ip-api.com/json?fields=status,countryCode,region",
-          );
-          const data = await res.json();
-
-          if (data.status === "success") {
-            setUserCountry(data.countryCode || "US");
-
-            // Only send subdivision for US users (Coinbase requirement)
-            if (data.countryCode === "US" && data.region) {
-              setUserSubdivision(data.region); // e.g. "OH", "CA", "NY"
-            } else {
-              setUserSubdivision(undefined);
-            }
-          } else {
-            console.warn(
-              "IP geolocation failed - falling back to US",
-              data.status,
-            );
-          }
-        } catch (err) {
-          console.warn("IP geolocation failed - falling back to US", err);
-        }
-      };
-
-      fetchLocation();
-    }, []);
-
     return (
       <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm w-full max-w-md">
         {/* Address + copy */}
@@ -233,7 +217,7 @@ export default function EmbeddedWalletButton() {
                           <p>
                             This buys USDC on the Base network using Coinbase
                             Pay and sends it instantly to your Fragbox wallet.
-                            You'll see the exact amount after fees before
+                            You&apos;ll see the exact amount after fees before
                             confirming.
                           </p>
                           <div className="text-[10px] text-zinc-500 mt-3 flex items-center gap-1">
