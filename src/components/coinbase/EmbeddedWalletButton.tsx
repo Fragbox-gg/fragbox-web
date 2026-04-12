@@ -17,7 +17,7 @@ import {
   FundFooter,
   FundTitle,
 } from "@coinbase/cdp-react";
-import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { QuestionMarkCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Popover,
   Transition,
@@ -211,9 +211,10 @@ export default function EmbeddedWalletButton() {
 
                     <button
                       onClick={() => setShowFundModal(false)}
-                      className="text-zinc-400 hover:text-white text-3xl leading-none transition-colors"
+                      className="text-zinc-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-lime-500/50 rounded-xl p-1"
+                      aria-label="Close deposit modal"
                     >
-                      x
+                      <XMarkIcon className="h-6 w-6" />
                     </button>
                   </div>
 
