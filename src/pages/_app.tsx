@@ -11,8 +11,38 @@ import { Toaster } from "sonner";
 import { config } from "../wagmi";
 
 import { CDPReactProvider } from "@coinbase/cdp-react";
+import type { Theme } from "@coinbase/cdp-react/theme";
 
 const client = new QueryClient();
+
+const fragboxTheme: Partial<Theme> = {
+  // Core background & cards
+  "colors-bg-default": "#18181b", // zinc-900
+  "colors-bg-overlay": "#27272a", // zinc-800
+  "colors-bg-secondary": "#27272a",
+
+  // Text
+  "colors-fg-default": "#f4f4f5", // zinc-100 / near white
+  "colors-fg-muted": "#a1a1aa", // zinc-400
+
+  // Primary accent → your neon lime
+  "colors-primary": "#65A30D", // lime-600
+  "colors-bg-primary": "#65A30D",
+  "colors-bg-primary-hover": "#84CC16", // lime-500 on hover
+  "colors-bg-primary-active": "#A3E635", // lime-400
+
+  // Buttons & CTAs
+  "colors-cta-primary": "#65A30D",
+  "colors-cta-primary-hover": "#84CC16",
+
+  // Borders & dividers
+  "colors-line-default": "#3f3f46", // zinc-700
+
+  // Radius — matches your rounded-3xl
+  "border-radius-button": "1.5rem", // 24px = 3xl
+  "border-radius-card": "1.5rem",
+  "border-radius-input": "1.5rem",
+};
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -41,6 +71,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 },
                 appName: "Fragbox",
               }}
+              theme={fragboxTheme}
             >
               <Component {...pageProps} />
               <Toaster position="top-right" richColors closeButton />

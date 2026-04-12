@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   useSignInWithEmail,
   useVerifyEmailOTP,
@@ -8,8 +8,9 @@ import {
   useEvmAddress,
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
-import { selectedBaseChain, isTestBase } from "@/wagmi";
+import { selectedBaseNetwork, selectedBaseChain, isTestBase } from "@/wagmi";
 import { toast } from "sonner";
+import { Fund, type FundProps } from "@coinbase/cdp-react";
 
 export default function EmbeddedWalletButton() {
   const { signInWithEmail } = useSignInWithEmail();
@@ -25,6 +26,8 @@ export default function EmbeddedWalletButton() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [faucetLoading, setFaucetLoading] = useState(false);
+  const [showFundModal, setShowFundModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
@@ -69,8 +72,32 @@ export default function EmbeddedWalletButton() {
     }
   };
 
-  // TODO
-  const handleMainnetDeposit = async () => {};
+  const fetchBuyOptions: FundProps["fetchBuyOptions"] = useCallback(
+    async (params) => {
+      const res = await fetch(
+        `/api/onramp/buy-options?${new URLSearchParams(params)}`,
+      );
+      return res.json();
+    },
+    [],
+  );
+
+  const fetchBuyQuote: FundProps["fetchBuyQuote"] = useCallback(
+    async (params) => {
+      const res = await fetch("/api/onramp/buy-quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+      });
+      return res.json();
+    },
+    [],
+  );
+
+  const handleMainnetDeposit = async () => {
+    if (!evmAddress) return;
+    setShowFundModal(true);
+  };
 
   // Connected state (compact)
   if (isSignedIn && evmAddress) {
@@ -79,6 +106,13 @@ export default function EmbeddedWalletButton() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     };
+
+    // TODO
+    // Get the user's location (i.e. from IP geolocation)
+    const userCountry = "US";
+
+    // If user is in the US, the state is also required
+    const userSubdivision = userCountry === "US" ? "CA" : undefined;
 
     return (
       <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-700 rounded-3xl p-2.5 text-sm w-full max-w-md">
@@ -105,25 +139,86 @@ export default function EmbeddedWalletButton() {
             </div>
           )}
         </button>
-
         {/* Balance */}
         <div className="font-medium">
           <span className="text-lime-400">${usdcFormatted}</span>
         </div>
 
         {/* Deposit */}
-        <button
-          onClick={isTestBase ? handleGetTestUsdc : handleMainnetDeposit}
-          disabled={faucetLoading}
-          className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
-        >
-          Deposit
-        </button>
+        {isTestBase ? (
+          <button
+            onClick={handleGetTestUsdc}
+            disabled={faucetLoading}
+            className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
+          >
+            Deposit
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={handleMainnetDeposit}
+              className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
+            >
+              Deposit
+            </button>
 
-        {/* Withdraw */}
-        <button className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors">
-          Withdraw
-        </button>
+            {showFundModal && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                <div className="bg-zinc-900 rounded-3xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold">Deposit USDC</h2>
+                    <button
+                      onClick={() => setShowFundModal(false)}
+                      className="text-zinc-400 hover:text-white text-xl leading-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* CUSTOM FUND MODAL */}
+                  <Fund
+                    country={userCountry}
+                    subdivision={userSubdivision}
+                    cryptoCurrency="USDC"
+                    fiatCurrency="usd"
+                    fetchBuyQuote={fetchBuyQuote}
+                    fetchBuyOptions={fetchBuyOptions}
+                    network={selectedBaseNetwork}
+                    presetAmountInputs={[5, 10, 25]}
+                    destinationAddress={evmAddress}
+                    onSuccess={(tx) => {
+                      toast.success("Deposit successful!");
+                      setShowFundModal(false); // close your modal
+                    }}
+                    // Optional styling/customization props
+                    // submitLabel="Buy USDC"
+                    // title="Buy USDC on Base"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Introduce FundsModal for mainnet withdrawal (off-ramp) */}
+        {isTestBase ? (
+          <button
+            disabled
+            title="Withdraw not available on testnet - only external wallet transfers supported"
+            className="px-4 py-1 bg-zinc-800 text-zinc-500 rounded-2xl text-xs font-medium cursor-not-allowed opacity-50"
+          >
+            Withdraw
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => setShowWithdrawModal(true)}
+              className="px-4 py-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-2xl text-xs font-medium transition-colors"
+            >
+              Withdraw
+            </button>
+          </>
+        )}
       </div>
     );
   }
