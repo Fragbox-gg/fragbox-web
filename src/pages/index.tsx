@@ -23,10 +23,10 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
         <link href="/favicon_io/favicon.ico" rel="icon" />
       </Head>
 
-      {/* <div className="w-full bg-red-700 text-white text-center py-3 px-4 font-bold text-base md:text-lg shadow-md">
+      <div className="w-full bg-red-700 text-white text-center py-3 px-4 font-bold text-base md:text-lg shadow-md">
         ⚠️ THIS IS A DEVELOPMENT / COMPUTER SCIENCE PROJECT — TESTNET / FAKE
         FUNDS ONLY — NO REAL MONEY OR REAL CRYPTO BETTING
-      </div> */}
+      </div>
 
       {/* Animated background layer – full screen, behind everything */}
       <div className="fixed inset-0 min-h-[100dvh] bg-animated -z-10" />
