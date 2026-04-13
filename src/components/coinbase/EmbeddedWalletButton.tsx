@@ -283,7 +283,7 @@ export default function EmbeddedWalletButton() {
                 <h2 className="text-2xl font-semibold text-white">
                   {isTestBase
                     ? "Send Testnet USDC on Base Sepolia"
-                    : "Cash Out via Coinbase"}
+                    : "Withdraw USDC"}
                 </h2>
                 <button
                   onClick={() => setShowWithdrawModal(false)}
@@ -301,7 +301,7 @@ export default function EmbeddedWalletButton() {
                 />
               ) : (
                 /* MAINNET OFFRAMP */
-                <MainnetOfframpForm
+                <MainnetWithdrawForm
                   evmAddress={evmAddress}
                   userCountry={userCountry}
                   userSubdivision={userSubdivision}
@@ -424,12 +424,18 @@ export default function EmbeddedWalletButton() {
   );
 }
 
-// Testnet form (simple send from Coinbase Smart Wallet)
-function TestnetWithdrawForm({
+// Reusable crypto withdrawal form (used by both testnet and mainnet)
+function CryptoWithdrawForm({
   evmAddress,
+  usdcAddress,
+  paymasterUrl,
+  networkDisplayName,
   onClose,
 }: {
   evmAddress: string;
+  usdcAddress: string;
+  paymasterUrl: string;
+  networkDisplayName: string;
   onClose: () => void;
 }) {
   const { sendUserOperation, status } = useSendUserOperation();
@@ -442,7 +448,6 @@ function TestnetWithdrawForm({
     }
     if (!evmAddress) return;
 
-    // Encode a normal ERC-20 `transfer` call
     const data = encodeFunctionData({
       abi: erc20Abi,
       functionName: "transfer",
@@ -455,17 +460,16 @@ function TestnetWithdrawForm({
         network: selectedBaseNetwork,
         calls: [
           {
-            to: process.env
-              .NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA as `0x${string}`,
+            to: usdcAddress as `0x${string}`,
             value: parseEther("0"),
             data,
           },
         ],
         useCdpPaymaster: true,
-        paymasterUrl: process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT,
+        paymasterUrl,
       });
 
-      toast.success("✅ Test USDC sent successfully!", {
+      toast.success(`USDC sent successfully on ${networkDisplayName}!`, {
         description: "Tx Hash: " + result.userOperationHash,
       });
       onClose();
@@ -484,16 +488,14 @@ function TestnetWithdrawForm({
         <label className="block text-xs text-zinc-400 mb-1">
           Amount (USDC)
         </label>
-        <div className="relative">
-          <input
-            type="number"
-            step="0.01"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
-          />
-        </div>
+        <input
+          type="number"
+          step="0.01"
+          placeholder="0.00"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
+        />
       </div>
 
       {/* Destination Address */}
@@ -515,18 +517,37 @@ function TestnetWithdrawForm({
         disabled={isPending || !amount || !to}
         className="w-full py-3 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-semibold rounded-2xl transition-colors disabled:opacity-50"
       >
-        {isPending ? "Sending on Base Sepolia..." : "Send USDC"}
+        {isPending ? `Sending on ${networkDisplayName}...` : "Send USDC"}
       </button>
 
       <p className="text-[14px] text-zinc-500 text-center">
-        This transfers testnet USDC from your Coinbase smart wallet
+        This transfers USDC from your Fragbox wallet on {networkDisplayName}
       </p>
     </div>
   );
 }
 
-// Mainnet Offramp form
-function MainnetOfframpForm({
+// Simple wrapper so we don't change any existing testnet behavior
+function TestnetWithdrawForm({
+  evmAddress,
+  onClose,
+}: {
+  evmAddress: string;
+  onClose: () => void;
+}) {
+  return (
+    <CryptoWithdrawForm
+      evmAddress={evmAddress}
+      usdcAddress={process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA as string}
+      paymasterUrl={process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT as string}
+      networkDisplayName="Base Sepolia"
+      onClose={onClose}
+    />
+  );
+}
+
+// Mainnet form with choice between crypto wallet OR bank
+function MainnetWithdrawForm({
   evmAddress,
   userCountry,
   userSubdivision,
@@ -537,7 +558,8 @@ function MainnetOfframpForm({
   userSubdivision?: string;
   onClose: () => void;
 }) {
-  const [amount, setAmount] = useState("");
+  const [withdrawType, setWithdrawType] = useState<"crypto" | "bank">("crypto");
+  const [amount, setAmount] = useState(""); // for bank only
   const [loading, setLoading] = useState(false);
 
   const handleCashOut = async () => {
@@ -547,37 +569,6 @@ function MainnetOfframpForm({
 
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append("networks", "base");
-      if (userCountry) params.append("country", userCountry);
-      if (userSubdivision) params.append("subdivision", userSubdivision);
-      params.append("networks", "base");
-      params.append("cashoutCurrency", "USD"); // always USD for offramp
-
-      // 1. Fetch config once (or on country change)
-      const configRes = await fetch(
-        `/api/offramp/sell-options?${params.toString()}`,
-      );
-
-      if (!configRes.ok) throw new Error("Failed to fetch cashout methods");
-
-      const data = await configRes.json();
-      const paymentOptions: { id: string; min: string; max: string }[] =
-        data?.paymentMethods || [];
-
-      // 2. Prefer ACH_BANK_ACCOUNT if available, otherwise first valid method
-      let paymentMethod = "ACH_BANK_ACCOUNT";
-      const achOption = paymentOptions.find(
-        (opt) => opt.id.toUpperCase() === "ACH_BANK_ACCOUNT",
-      );
-
-      if (achOption) {
-        paymentMethod = achOption.id;
-      } else if (paymentOptions.length > 0) {
-        paymentMethod = paymentOptions[0].id;
-      }
-
-      // 3. When calling sell-quote, pass it
       const res = await fetch("/api/offramp/sell-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -585,27 +576,19 @@ function MainnetOfframpForm({
           country: userCountry,
           subdivision: userSubdivision,
           sellAmount: amount,
-          paymentMethod: paymentMethod,
           sourceAddress: evmAddress,
           partnerUserId: `fragbox-${evmAddress.slice(-12)}`,
         }),
       });
 
-      const responseData = await res.json();
-
-      const redirectUrl = responseData.offrampUrl;
+      const data = await res.json();
+      const redirectUrl = data.offrampUrl;
 
       if (redirectUrl) {
         window.open(redirectUrl);
         onClose();
       } else {
-        toast.error(
-          data.error?.message ||
-            data.error ||
-            responseData.error?.message ||
-            responseData.error ||
-            "Failed to get quote",
-        );
+        toast.error(data.error?.message || data.error || "Failed to get quote");
       }
     } catch (e) {
       toast.error("Network error - please try again");
@@ -617,31 +600,73 @@ function MainnetOfframpForm({
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-xs text-zinc-400 mb-1">
-          Amount to cash out (USDC)
-        </label>
-        <input
-          type="number"
-          step="0.01"
-          placeholder="0.00"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
-        />
+      {/* Choice tabs */}
+      <div className="flex bg-zinc-800 rounded-3xl p-1">
+        <button
+          onClick={() => setWithdrawType("crypto")}
+          className={`flex-1 py-3 text-sm font-medium rounded-2xl transition-all ${
+            withdrawType === "crypto"
+              ? "bg-white text-black shadow-inner"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          To Crypto Wallet
+        </button>
+        <button
+          onClick={() => setWithdrawType("bank")}
+          className={`flex-1 py-3 text-sm font-medium rounded-2xl transition-all ${
+            withdrawType === "bank"
+              ? "bg-white text-black shadow-inner"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          To Bank Account
+        </button>
       </div>
 
-      <button
-        onClick={handleCashOut}
-        disabled={loading || !amount}
-        className="w-full py-3 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-semibold rounded-2xl transition-colors disabled:opacity-50"
-      >
-        {loading ? "Loading Coinbase Offramp..." : "Continue to Coinbase"}
-      </button>
+      {withdrawType === "crypto" ? (
+        /* Crypto withdrawal on Base mainnet */
+        <CryptoWithdrawForm
+          evmAddress={evmAddress}
+          usdcAddress={
+            process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_MAINNET as string
+          }
+          paymasterUrl={
+            process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT as string
+          }
+          networkDisplayName="Base"
+          onClose={onClose}
+        />
+      ) : (
+        /* Original bank offramp */
+        <div className="space-y-6">
+          <div>
+            <label className="block text-xs text-zinc-400 mb-1">
+              Amount to cash out (USDC)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-4 py-3 text-xl outline-none"
+            />
+          </div>
 
-      <p className="text-xs text-zinc-400 text-center">
-        You&apos;ll be redirected to Coinbase to complete the cash-out
-      </p>
+          <button
+            onClick={handleCashOut}
+            disabled={loading || !amount}
+            className="w-full py-3 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-semibold rounded-2xl transition-colors disabled:opacity-50"
+          >
+            {loading ? "Loading Coinbase Offramp..." : "Continue to Coinbase"}
+          </button>
+
+          <p className="text-xs text-zinc-400 text-center">
+            You'll be redirected to Coinbase to complete the cash-out
+          </p>
+        </div>
+      )}
     </div>
   );
 }
