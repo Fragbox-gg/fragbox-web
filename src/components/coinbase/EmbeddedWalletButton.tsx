@@ -547,6 +547,37 @@ function MainnetOfframpForm({
 
     setLoading(true);
     try {
+      const params = new URLSearchParams();
+      params.append("networks", "base");
+      if (userCountry) params.append("country", userCountry);
+      if (userSubdivision) params.append("subdivision", userSubdivision);
+      params.append("networks", "base");
+      params.append("cashoutCurrency", "USD"); // always USD for offramp
+
+      // 1. Fetch config once (or on country change)
+      const configRes = await fetch(
+        `/api/offramp/sell-options?${params.toString()}`,
+      );
+
+      if (!configRes.ok) throw new Error("Failed to fetch cashout methods");
+
+      const data = await configRes.json();
+      const paymentOptions: { id: string; min: string; max: string }[] =
+        data?.paymentMethods || [];
+
+      // 2. Prefer ACH_BANK_ACCOUNT if available, otherwise first valid method
+      let paymentMethod = "ACH_BANK_ACCOUNT";
+      const achOption = paymentOptions.find(
+        (opt) => opt.id.toUpperCase() === "ACH_BANK_ACCOUNT",
+      );
+
+      if (achOption) {
+        paymentMethod = achOption.id;
+      } else if (paymentOptions.length > 0) {
+        paymentMethod = paymentOptions[0].id;
+      }
+
+      // 3. When calling sell-quote, pass it
       const res = await fetch("/api/offramp/sell-quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -554,20 +585,27 @@ function MainnetOfframpForm({
           country: userCountry,
           subdivision: userSubdivision,
           sellAmount: amount,
+          paymentMethod: paymentMethod,
           sourceAddress: evmAddress,
           partnerUserId: `fragbox-${evmAddress.slice(-12)}`,
         }),
       });
 
-      const data = await res.json();
+      const responseData = await res.json();
 
-      const redirectUrl = data.offrampUrl;
+      const redirectUrl = responseData.offrampUrl;
 
       if (redirectUrl) {
         window.open(redirectUrl);
         onClose();
       } else {
-        toast.error(data.error?.message || data.error || "Failed to get quote");
+        toast.error(
+          data.error?.message ||
+            data.error ||
+            responseData.error?.message ||
+            responseData.error ||
+            "Failed to get quote",
+        );
       }
     } catch (e) {
       toast.error("Network error - please try again");

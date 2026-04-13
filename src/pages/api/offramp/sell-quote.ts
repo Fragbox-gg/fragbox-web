@@ -39,7 +39,7 @@ export default async function handler(
       cashoutCurrency: "USD",
       country: body.country,
       subdivision: body.subdivision,
-      paymentMethod: "ACH_BANK_ACCOUNT",
+      paymentMethod: body.paymentMethod || "ACH_BANK_ACCOUNT",
       sellCurrency: "USDC",
       sellAmount: body.sellAmount?.toString(),
       sellNetwork: "base",
