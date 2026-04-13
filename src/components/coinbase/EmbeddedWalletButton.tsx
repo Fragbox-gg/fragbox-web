@@ -551,26 +551,26 @@ function MainnetOfframpForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          country: userCountry || "US",
+          country: userCountry,
           subdivision: userSubdivision,
           sellAmount: amount,
           sourceAddress: evmAddress,
+          partnerUserId: `fragbox-${evmAddress.slice(-12)}`,
         }),
       });
 
       const data = await res.json();
 
-      // Coinbase usually returns `url` (sometimes `offramp_url` or `checkoutUrl`)
-      const redirectUrl = data.url || data.offramp_url || data.checkoutUrl;
+      const redirectUrl = data.offrampUrl;
 
       if (redirectUrl) {
-        window.open(redirectUrl, "_blank");
+        window.open(redirectUrl);
         onClose();
       } else {
         toast.error(data.error?.message || data.error || "Failed to get quote");
       }
     } catch (e) {
-      toast.error("Network error – please try again");
+      toast.error("Network error - please try again");
       console.error(e);
     } finally {
       setLoading(false);
