@@ -663,7 +663,7 @@ function MainnetWithdrawForm({
           </button>
 
           <p className="text-xs text-zinc-400 text-center">
-            You'll be redirected to Coinbase to complete the cash-out
+            You&apos;ll be redirected to Coinbase to complete the cash-out
           </p>
         </div>
       )}
