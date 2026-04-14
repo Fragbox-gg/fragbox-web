@@ -13,8 +13,21 @@ import {
 } from "recharts";
 import { FaceitUserInfoProps } from "./api/faceit";
 import PlayerMatchHistory from "../components/PlayerMatchHistory";
+import { useState, useCallback } from "react";
+import {
+  useIsSignedIn,
+  useEvmAddress,
+  useSendUserOperation,
+} from "@coinbase/cdp-hooks";
+import { toast } from "sonner";
+import { parseUnits, encodeFunctionData, type Address } from "viem";
+import { selectedBaseNetwork, isTestBase } from "@/wagmi";
+import { fragBoxBettingAbi } from "@/constants/abi"; // ← your existing ABI import
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <Head>
@@ -28,7 +41,7 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
         FUNDS ONLY — NO REAL MONEY OR REAL CRYPTO BETTING
       </div>
 
-      {/* Animated background layer – full screen, behind everything */}
+      {/* Animated background layer */}
       <div className="fixed inset-0 min-h-[100dvh] bg-animated -z-10" />
 
       <Header faceitUser={faceitUser} />
@@ -45,11 +58,22 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
               Wager on your CS skills with USDC on Base. Balanced pugs, instant
               payouts, no matchfixing.
             </p>
-            <button className="mt-8 px-6 py-3 bg-lime-600 text-black font-bold rounded-xl hover:bg-lime-500 transition-all neon-glow">
-              Join a Pug Now
-            </button>
+
+            <BetOnMatchButton
+              faceitUser={faceitUser}
+              onOpen={() => {
+                if (!faceitUser) {
+                  toast.error("Please connect your FACEIT account first", {
+                    description: "You need to be linked to bet on a match.",
+                  });
+                  return;
+                }
+                setIsModalOpen(true);
+              }}
+            />
           </section>
 
+          {/* Rest of your sections unchanged */}
           {/* Features Section */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-zinc-900/50 border border-lime-500/20 p-6 rounded-2xl">
@@ -99,52 +123,210 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
               Recent Matches
             </h3>
             <PlayerMatchHistory faceitUser={faceitUser} />
-            {/* <ul className="space-y-6"> */}
-            {/* <ExperienceItem title="Match #1234" org="5v5 Pug" period="3/14/2026" desc="$100 Pot - Winner: Team A" /> */}
-            {/* Add more dynamically */}
-            {/* </ul> */}
           </section>
         </main>
 
         <Footer />
       </div>
+
+      {isModalOpen && (
+        <BetOnMatchModal
+          faceitUser={faceitUser!}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
 
-// Helper components (updated colors)
+function BetOnMatchButton({
+  faceitUser,
+  onOpen,
+}: {
+  faceitUser: FaceitUserInfoProps["faceitUser"] | null;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      onClick={onOpen}
+      className="mt-8 px-8 py-4 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-bold text-xl rounded-2xl transition-all neon-glow shadow-xl shadow-lime-500/30 flex items-center gap-3 mx-auto"
+    >
+      <span>Bet on a Match</span>
+      <span className="text-2xl">🎮</span>
+    </button>
+  );
+}
+
+function BetOnMatchModal({
+  faceitUser,
+  onClose,
+}: {
+  faceitUser: FaceitUserInfoProps["faceitUser"];
+  onClose: () => void;
+}) {
+  // ... (all your existing state and logic stays EXACTLY the same)
+  const { isSignedIn } = useIsSignedIn();
+  const { evmAddress } = useEvmAddress();
+  const { sendUserOperation, status } = useSendUserOperation();
+
+  const [matchInput, setMatchInput] = useState("");
+  const [parsedMatchId, setParsedMatchId] = useState("");
+  const [amount, setAmount] = useState("10.00");
+  const [tierId, setTierId] = useState<number>(1);
+  const [loading, setLoading] = useState(false);
+
+  const parseMatchId = (input: string): string => {
+    const regex = /1-[0-9a-fA-F-]{36}/;
+    const match = input.match(regex);
+    return match ? match[0] : "";
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMatchInput(value);
+    setParsedMatchId(parseMatchId(value));
+  };
+
+  const handleDeposit = async () => {
+    if (!isSignedIn || !evmAddress) {
+      toast.error("Wallet not connected");
+      return;
+    }
+    if (!parsedMatchId) {
+      toast.error("Invalid Faceit match ID");
+      return;
+    }
+    if (!faceitUser?.guid) {
+      toast.error("Faceit account not fully linked");
+      return;
+    }
+    if (!amount || Number(amount) <= 0) {
+      toast.error("Enter a valid bet amount");
+      return;
+    }
+
+    setLoading(true);
+
+    const contractAddress = (
+      isTestBase
+        ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
+        : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
+    ) as `0x${string}`;
+
+    const rawBetAmount = parseUnits(amount, 6);
+
+    const data = encodeFunctionData({
+      abi: fragBoxBettingAbi,
+      functionName: "deposit",
+      args: [parsedMatchId, faceitUser.guid, rawBetAmount, tierId],
+    });
+
+    try {
+      const result = await sendUserOperation({
+        evmSmartAccount: evmAddress as `0x${string}`,
+        network: selectedBaseNetwork,
+        calls: [{ to: contractAddress, value: parseUnits("0", 18), data }],
+        useCdpPaymaster: true,
+        paymasterUrl: process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT as string,
+      });
+
+      toast.success("✅ Bet deposited successfully!", {
+        description: `Match ID: ${parsedMatchId}`,
+      });
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Transaction failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100000] backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-lime-500/30 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl shadow-lime-500/10 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 text-zinc-400 hover:text-white transition-colors"
+        >
+          <XMarkIcon className="h-6 w-6" />
+        </button>
+
+        <h2 className="text-3xl font-bold text-lime-400 mb-2">Bet on Match</h2>
+        <p className="text-zinc-400 text-sm mb-6">
+          Paste your Faceit matchroom link or ID
+        </p>
+
+        {/* Match ID Input */}
+        <div className="mb-6">
+          <label className="block text-xs text-zinc-400 mb-2 font-mono">
+            FACEIT MATCHROOM
+          </label>
+          <input
+            type="text"
+            value={matchInput}
+            onChange={handleInputChange}
+            placeholder="https://www.faceit.com/en/cs2/room/1-660accbe-... or just the ID"
+            className="w-full bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-5 py-4 text-sm outline-none font-mono"
+          />
+          {parsedMatchId && (
+            <div className="mt-2 text-xs text-lime-400 font-mono bg-zinc-950 px-3 py-1 rounded-2xl inline-flex items-center gap-2">
+              <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
+              Parsed: {parsedMatchId}
+            </div>
+          )}
+        </div>
+
+        {/* Bet Amount */}
+        <div className="mb-6">
+          <label className="block text-xs text-zinc-400 mb-2 font-mono">
+            BET AMOUNT (USDC)
+          </label>
+          <div className="flex gap-3">
+            <input
+              type="number"
+              step="0.01"
+              min="5"
+              max="10"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              onBlur={(e) => {
+                let num = parseFloat(e.target.value);
+
+                if (isNaN(num)) num = 5;
+                if (num < 5) num = 5;
+                if (num > 10) num = 10;
+
+                setAmount(num.toFixed(2));
+              }}
+              className="flex-1 bg-zinc-800 border border-zinc-700 focus:border-lime-400 rounded-2xl px-5 py-4 text-3xl font-medium outline-none"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleDeposit}
+          disabled={loading || !parsedMatchId || status === "pending"}
+          className="w-full py-5 bg-lime-500 hover:bg-lime-400 active:bg-lime-600 text-black font-bold text-xl rounded-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+        >
+          {loading || status === "pending"
+            ? "Depositing to contract…"
+            : `Deposit $${amount} • Join the Box`}
+        </button>
+
+        <p className="text-center text-[10px] text-zinc-500 mt-6">
+          Paymaster sponsored • Gasless on Base Sepolia
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Helper components
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-black/40 border border-zinc-800 p-3 rounded-lg">
       <div className="text-[9px] text-zinc-500 uppercase mb-1">{label}</div>
       <div className="text-sm font-mono font-bold text-lime-400">{value}</div>
-    </div>
-  );
-}
-
-function ExperienceItem({
-  title,
-  org,
-  period,
-  desc,
-}: {
-  title: string;
-  org: string;
-  period: string;
-  desc: string;
-}) {
-  return (
-    <div className="border-l-2 border-lime-500/20 pl-4 pb-1">
-      <div className="flex justify-between items-baseline gap-4">
-        <div className="text-sm font-semibold text-lime-300">{title}</div>
-        <div className="text-[13px] text-zinc-500 font-medium shrink-0 whitespace-nowrap">
-          {period}
-        </div>
-      </div>
-      <div className="text-[12px] text-lime-400 mt-0.5 mb-1.5">{org}</div>
-      {desc && (
-        <div className="text-[11px] text-zinc-400 leading-relaxed">{desc}</div>
-      )}
     </div>
   );
 }
