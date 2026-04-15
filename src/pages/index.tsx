@@ -176,8 +176,56 @@ function BetOnMatchModal({
   const [loading, setLoading] = useState(false);
 
   const parseMatchId = (input: string): string => {
-    const regex = /1-[0-9a-fA-F-]{36}/;
-    const match = input.match(regex);
+    if (!input || typeof input !== "string") return "";
+
+    const trimmed = input.trim();
+    if (!trimmed) return "";
+
+    // Precise regex for Faceit match ID format:
+    // "1-" + UUID (8-4-4-4-12 hexadecimal groups)
+    const uuidRegex =
+      /^1-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    // 1. If the entire input is already a clean match ID → return it immediately
+    if (uuidRegex.test(trimmed)) {
+      return trimmed;
+    }
+
+    // 2. Try to parse as a URL (handles full links, partial paths, etc.)
+    try {
+      let urlString = trimmed;
+      // Prepend protocol if missing (so new URL() doesn't throw)
+      if (!urlString.startsWith("http")) {
+        urlString = `https://${urlString}`;
+      }
+      const url = new URL(urlString);
+
+      // Split the pathname and look for the segment right after "/room/"
+      // (covers both /room/1-xxx and /room/1-xxx/scoreboard)
+      const segments = url.pathname.split("/").filter(Boolean);
+
+      const roomIndex = segments.indexOf("room");
+      if (roomIndex !== -1 && roomIndex + 1 < segments.length) {
+        const candidate = segments[roomIndex + 1];
+        if (uuidRegex.test(candidate)) {
+          return candidate;
+        }
+      }
+
+      // Fallback: scan every segment for the ID pattern (extra safety)
+      for (const segment of segments) {
+        if (uuidRegex.test(segment)) {
+          return segment;
+        }
+      }
+    } catch {
+      // Not a valid URL → fall through to regex search
+    }
+
+    // 3. Last resort: search anywhere in the string (covers raw ID or ID embedded in text)
+    const searchRegex =
+      /1-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+    const match = trimmed.match(searchRegex);
     return match ? match[0] : "";
   };
 
@@ -271,7 +319,7 @@ function BetOnMatchModal({
           {parsedMatchId && (
             <div className="mt-2 text-xs text-lime-400 font-mono bg-zinc-950 px-3 py-1 rounded-2xl inline-flex items-center gap-2">
               <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></div>
-              Parsed: {parsedMatchId}
+              Match Id: {parsedMatchId}
             </div>
           )}
         </div>
