@@ -279,7 +279,7 @@ function BetOnMatchModal({
       });
 
       toast.success("✅ Bet deposited successfully!", {
-        description: `Match ID: ${parsedMatchId}`,
+        description: `Tx Hash: ${result.userOperationHash}`,
       });
       onClose();
     } catch (err: any) {
