@@ -8,7 +8,7 @@ import {
 } from "@headlessui/react";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import FaceitLoginButton from "../components/FaceitLoginButton";
-import { FaceitUserInfoProps } from "../pages/api/faceit";
+import { FaceitUserInfoProps } from "../lib/faceit/types";
 import Image from "next/image";
 import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
 import { useIsSignedIn, useSignOut } from "@coinbase/cdp-hooks";

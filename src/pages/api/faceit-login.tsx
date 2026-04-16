@@ -1,25 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 
-export interface FaceitUserInfoProps {
-  faceitUser: {
-    guid?: string;
-    picture?: string;
-    email?: string;
-    birthdate?: string;
-    nickname?: string;
-    locale?: string;
-    iss?: string;
-    sub?: string;
-    aud?: string;
-    exp?: number;
-    iat?: number;
-    given_name?: string;
-    family_name?: string;
-    email_verified?: boolean;
-  } | null;
-}
-
 function generateCodeVerifier() {
   return crypto
     .randomBytes(32)

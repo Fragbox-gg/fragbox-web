@@ -8,6 +8,55 @@ if (!API_KEY) {
   console.warn("FACEIT API key is missing!");
 }
 
+export async function getPlayerFaction(matchId: string, playerId: string) {
+  const res = await fetch(`${API_BASE}/matches/${matchId}`, {
+    signal: AbortSignal.timeout(5000),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+  });
+
+  if (!res.ok) throw new Error(`Faceit API error: ${res.status}`);
+
+  const data = await res.json();
+  const f1 = (data.teams?.faction1?.roster || []).map((p: any) => p.player_id);
+  const f2 = (data.teams?.faction2?.roster || []).map((p: any) => p.player_id);
+
+  return { faction: f1.includes(playerId) ? 1 : f2.includes(playerId) ? 2 : 0 };
+}
+
+export async function getMatchStatus(matchId: string) {
+  const res = await fetch(`${API_BASE}/matches/${matchId}`, {
+    signal: AbortSignal.timeout(5000),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${API_KEY}`,
+    },
+  });
+
+  if (!res.ok) throw new Error(`Faceit API error: ${res.status}`);
+
+  const data = await res.json();
+  const statusStr = data.status || "UNKNOWN";
+
+  let statusCode = 0;
+  if (statusStr === "VOTING") statusCode = 1;
+  else if (statusStr === "READY") statusCode = 2;
+  else if (statusStr === "ONGOING") statusCode = 3;
+  else if (statusStr === "FINISHED") statusCode = 4;
+
+  let winnerCode = 0; // 0=unknown, 1=faction1, 2=faction2, 3=draw
+  if (statusCode === 4 && data.results?.winner) {
+    const w = data.results.winner;
+    if (w === "faction1") winnerCode = 1;
+    else if (w === "faction2") winnerCode = 2;
+    else if (w === "draw") winnerCode = 3;
+  }
+
+  return { statusCode, winnerCode };
+}
+
 export async function fetchPlayerRecentMatches(
   playerId: string,
   limit = 10,

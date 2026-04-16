@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Rectangle,
 } from "recharts";
-import { FaceitUserInfoProps } from "./api/faceit";
+import { FaceitUserInfoProps } from "../lib/faceit/types";
 import PlayerMatchHistory from "../components/PlayerMatchHistory";
 import { useState, useCallback } from "react";
 import {

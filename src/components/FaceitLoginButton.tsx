@@ -13,7 +13,11 @@ const FaceitLoginButton = () => {
       document.cookie = `embedded_wallet_address=${evmAddress}; Path=/; Max-Age=600; SameSite=Lax${isProd ? "; Secure" : ""}`;
     }
 
-    const popup = window.open("/api/faceit", "_blank", "width=500,height=600");
+    const popup = window.open(
+      "/api/faceit-login",
+      "_blank",
+      "width=500,height=600",
+    );
     const interval = setInterval(() => {
       if (popup?.closed) {
         clearInterval(interval);

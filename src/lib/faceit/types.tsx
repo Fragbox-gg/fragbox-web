@@ -1,4 +1,23 @@
 // lib/faceit/types.ts
+export interface FaceitUserInfoProps {
+  faceitUser: {
+    guid?: string;
+    picture?: string;
+    email?: string;
+    birthdate?: string;
+    nickname?: string;
+    locale?: string;
+    iss?: string;
+    sub?: string;
+    aud?: string;
+    exp?: number;
+    iat?: number;
+    given_name?: string;
+    family_name?: string;
+    email_verified?: boolean;
+  } | null;
+}
+
 export interface Player {
   player_id: string;
   nickname: string;

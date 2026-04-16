@@ -4,15 +4,7 @@
 import { useEffect, useState } from "react";
 import MatchHistoryList from "./match/MatchHistoryList";
 import { fetchPlayerRecentMatches } from "@/lib/faceit/faceit-api";
-import { EnrichedMatch } from "@/lib/faceit/types";
-
-interface FaceitUserInfoProps {
-  faceitUser: {
-    guid?: string;
-    nickname?: string;
-    // ... other fields
-  } | null;
-}
+import { EnrichedMatch, FaceitUserInfoProps } from "@/lib/faceit/types";
 
 export default function PlayerMatchHistory({
   faceitUser,
