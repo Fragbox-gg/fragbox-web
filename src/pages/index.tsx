@@ -171,7 +171,7 @@ function BetOnMatchModal({
 
   const [matchInput, setMatchInput] = useState("");
   const [parsedMatchId, setParsedMatchId] = useState("");
-  const [amount, setAmount] = useState("10.00");
+  const [amount, setAmount] = useState("5.00");
   const [tierId, setTierId] = useState<number>(1);
   const [loading, setLoading] = useState(false);
 
