@@ -22,7 +22,7 @@ import {
 import { toast } from "sonner";
 import { parseUnits, encodeFunctionData, type Address } from "viem";
 import { selectedBaseNetwork, isTestBase } from "@/wagmi";
-import { fragBoxBettingAbi } from "@/constants/abi"; // ← your existing ABI import
+import { fragBoxBettingAbi } from "@/constants/abi";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
