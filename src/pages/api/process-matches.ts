@@ -38,6 +38,25 @@ async function processNewBets() {
   const lastBlockKey = "lastProcessedBlock";
   let lastProcessedBlock = BigInt((await kv.get(lastBlockKey)) || "0");
 
+  // Get current block once
+  const currentBlock = await publicClient.getBlockNumber();
+  console.log(`📊 Current block: ${currentBlock}`);
+
+  // Smart first-run / recovery protection (prevents scanning the entire chain)
+  if (
+    lastProcessedBlock === 0n ||
+    lastProcessedBlock < currentBlock - 100000n
+  ) {
+    lastProcessedBlock = currentBlock - 50000n; // start from last ~50k blocks
+    console.log(
+      `⚠️ Fresh start detected → jumping to block ${lastProcessedBlock}`,
+    );
+  }
+
+  const MAX_RANGE = 8000n; // safe value under Base Sepolia's 10k limit
+  let fromBlock = lastProcessedBlock + 1n;
+  let processedCount = 0;
+
   const betPlacedEvent = fragBoxBettingAbi.find(
     (
       item,
@@ -52,31 +71,49 @@ async function processNewBets() {
     return;
   }
 
-  const logs = await publicClient.getLogs({
-    address: CONTRACT_ADDRESS,
-    event: betPlacedEvent,
-    fromBlock: lastProcessedBlock + 1n,
-    toBlock: "latest",
-  });
+  // Chunked fetching
+  while (fromBlock <= currentBlock) {
+    const toBlock =
+      fromBlock + MAX_RANGE - 1n > currentBlock
+        ? currentBlock
+        : fromBlock + MAX_RANGE - 1n;
 
-  for (const log of logs) {
-    try {
-      const parsed = parseEventLogs({ abi: fragBoxBettingAbi, logs: [log] })[0];
-      if (parsed.eventName !== "BetPlaced") continue;
+    console.log(`🔎 Fetching logs ${fromBlock} → ${toBlock}`);
 
-      const { matchId: matchIdStr, playerId, bettor } = parsed.args as any;
-      console.log(`🆕 New bet -> Match: ${matchIdStr} | Player: ${playerId}`);
+    const logs = await publicClient.getLogs({
+      address: CONTRACT_ADDRESS,
+      event: betPlacedEvent,
+      fromBlock,
+      toBlock,
+    });
 
-      await updateMatchRoster(matchIdStr, playerId, bettor);
-      await addActiveMatchId(matchIdStr); // activate the match
-    } catch (e) {
-      console.error("Failed processing single BetPlaced:", e);
+    for (const log of logs) {
+      try {
+        const parsed = parseEventLogs({
+          abi: fragBoxBettingAbi,
+          logs: [log],
+        })[0];
+        if (parsed.eventName !== "BetPlaced") continue;
+
+        const { matchId: matchIdStr, playerId, bettor } = parsed.args as any;
+        console.log(`🆕 New bet -> Match: ${matchIdStr} | Player: ${playerId}`);
+
+        await updateMatchRoster(matchIdStr, playerId, bettor);
+        await addActiveMatchId(matchIdStr);
+        processedCount++;
+      } catch (e) {
+        console.error("Failed processing single BetPlaced:", e);
+      }
     }
+
+    fromBlock = toBlock + 1n;
   }
 
-  const currentBlock = await publicClient.getBlockNumber();
+  // Only update after ALL chunks succeeded
   await kv.set(lastBlockKey, currentBlock.toString());
-  console.log(`📌 Last processed block updated to ${currentBlock}`);
+  console.log(
+    `✅ Processed ${processedCount} new bets. Last block updated to ${currentBlock}`,
+  );
 }
 
 async function updateActiveMatchStatuses() {
