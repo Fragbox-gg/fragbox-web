@@ -13,10 +13,25 @@ import Image from "next/image";
 import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
 import { useIsSignedIn, useSignOut } from "@coinbase/cdp-hooks";
 import { useRegisteredWallet } from "@/hooks/useRegisteredWallet";
+import { useFragboxActions } from "@/hooks/useFragboxActions";
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
   const { isSignedIn: isCdpSignedIn } = useIsSignedIn();
   const { signOut: signOutCDP } = useSignOut();
+
+  const { withdraw, getWinnings, isPending } = useFragboxActions();
+  const playerId = faceitUser ? faceitUser.guid || "" : "";
+  const { data: winnings } = getWinnings(playerId);
+
+  // Formatted display (USDC has 6 decimals)
+  const winningsAmount = winnings ? Number(winnings) / 1_000_000 : 0;
+  const hasWinnings = winningsAmount > 0;
+
+  const handleWithdraw = useCallback(() => {
+    if (playerId) {
+      withdraw(playerId);
+    }
+  }, [withdraw, playerId]);
 
   const handleFullLogout = async () => {
     try {
@@ -166,6 +181,24 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
                       {faceitUser?.nickname}
                     </span>
                   </div>
+
+                  {/* Claim Winnings Button - now inline with profile + logout */}
+                  {hasWinnings && (
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={isPending}
+                      className="flex items-center gap-1.5 bg-lime-500 hover:bg-lime-600 disabled:bg-lime-600/60 text-zinc-950 px-4 py-2 rounded-3xl font-semibold text-sm transition-all whitespace-nowrap"
+                    >
+                      {isPending ? (
+                        <>
+                          <span className="animate-spin h-3.5 w-3.5 border-2 border-zinc-950 border-t-transparent rounded-full" />
+                          Claiming...
+                        </>
+                      ) : (
+                        <>💰 Claim {winningsAmount.toFixed(2)} USDC</>
+                      )}
+                    </button>
+                  )}
 
                   <button
                     onClick={handleFullLogout}

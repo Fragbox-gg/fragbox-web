@@ -1,6 +1,7 @@
 // components/match/MatchCard.tsx
 import Image from "next/image";
 import { EnrichedMatch } from "@/lib/faceit/types";
+import { useFragboxActions } from "@/hooks/useFragboxActions";
 
 interface MatchCardProps {
   match: EnrichedMatch;
@@ -35,6 +36,25 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const { claim, emergencyRefund, getMatchStatus, isPending } =
+    useFragboxActions();
+  const { data: matchOnChain } = getMatchStatus(match.match_id);
+
+  const matchStatus = matchOnChain?.matchStatus as number | undefined;
+
+  const isClaimEligible = matchStatus === 4 || matchStatus === 5; // Finished || Invalid
+  const isEmergencyEligible = matchStatus !== undefined && !isClaimEligible;
+
+  const handleAction = () => {
+    if (isClaimEligible) {
+      claim(match.match_id, userPlayerId);
+    } else if (isEmergencyEligible) {
+      emergencyRefund(match.match_id, userPlayerId);
+    }
+  };
+
+  const showButton = isClaimEligible || isEmergencyEligible;
 
   return (
     <div
@@ -130,6 +150,20 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
           {userWon ? "Victory" : "Defeat"} • {timeStr}
         </div>
       </a>
+
+      {showButton && (
+        <button
+          onClick={handleAction}
+          disabled={isPending}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-semibold disabled:opacity-50"
+        >
+          {isPending
+            ? "Processing..."
+            : userWon
+              ? "Claim Winnings"
+              : "Get Refund"}
+        </button>
+      )}
     </div>
   );
 }
