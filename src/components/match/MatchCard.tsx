@@ -1,7 +1,11 @@
 // components/match/MatchCard.tsx
 import Image from "next/image";
 import { EnrichedMatch } from "@/lib/faceit/types";
-import { useFragboxActions, useGetMatchBet } from "@/hooks/useFragboxActions";
+import {
+  useFragboxActions,
+  useGetMatchBet,
+  useHasPlacedBet,
+} from "@/hooks/useFragboxActions";
 
 interface MatchCardProps {
   match: EnrichedMatch;
@@ -37,8 +41,11 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     minute: "2-digit",
   });
 
-  const { claim, emergencyRefund, withdraw, isPending } = useFragboxActions();
+  const { claim, emergencyRefund, isPending } = useFragboxActions();
   const { data: matchOnChain } = useGetMatchBet(match.match_id);
+
+  // Only show claim/refund if they actually placed a bet
+  const hasPlacedBet = useHasPlacedBet(match.match_id, userPlayerId);
 
   const matchStartBlockTimestamp = matchOnChain?.matchStartTimestamp as
     | number
@@ -63,7 +70,7 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     }
   };
 
-  const showButton = isClaimEligible || isEmergencyEligible;
+  const showButton = hasPlacedBet && (isClaimEligible || isEmergencyEligible);
 
   return (
     <div
