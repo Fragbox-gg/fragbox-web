@@ -23,7 +23,7 @@ export function useGetWinnings(playerId?: string) {
   });
 }
 
-export function useGetMatchStatus(matchId?: string) {
+export function useGetMatchBet(matchId?: string) {
   const matchKey = useMemo(
     () => (matchId ? keccak256(stringToBytes(matchId)) : undefined),
     [matchId],

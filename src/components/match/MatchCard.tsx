@@ -1,10 +1,7 @@
 // components/match/MatchCard.tsx
 import Image from "next/image";
 import { EnrichedMatch } from "@/lib/faceit/types";
-import {
-  useFragboxActions,
-  useGetMatchStatus,
-} from "@/hooks/useFragboxActions";
+import { useFragboxActions, useGetMatchBet } from "@/hooks/useFragboxActions";
 
 interface MatchCardProps {
   match: EnrichedMatch;
@@ -41,12 +38,22 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
   });
 
   const { claim, emergencyRefund, withdraw, isPending } = useFragboxActions();
-  const { data: matchOnChain } = useGetMatchStatus(match.match_id);
+  const { data: matchOnChain } = useGetMatchBet(match.match_id);
 
+  const matchStartBlockTimestamp = matchOnChain?.matchStartTimestamp as
+    | number
+    | undefined;
   const matchStatus = matchOnChain?.matchStatus as number | undefined;
 
-  const isClaimEligible = matchStatus === 4 || matchStatus === 5; // Finished || Invalid
-  const isEmergencyEligible = matchStatus !== undefined && !isClaimEligible;
+  const isClaimEligible = matchStatus === 4 || matchStatus === 5; // Not invalid, and is finished or invalid
+
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const EMERGENCY_REFUND_TIMEOUT = 14400; // 4 hours in seconds
+  const isEmergencyEligible =
+    !isClaimEligible &&
+    !!matchStartBlockTimestamp && // guard against undefined
+    matchStartBlockTimestamp > 0 && // sometimes it's 0 (not started yet)
+    nowInSeconds > matchStartBlockTimestamp + EMERGENCY_REFUND_TIMEOUT;
 
   const handleAction = () => {
     if (isClaimEligible) {
@@ -161,9 +168,9 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
         >
           {isPending
             ? "Processing..."
-            : userWon
-              ? "Claim Winnings"
-              : "Get Refund"}
+            : isEmergencyEligible
+              ? "Get Refund"
+              : "Claim Winnings"}
         </button>
       )}
     </div>
