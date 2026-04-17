@@ -8,9 +8,7 @@ import {
   updateMatchStatus,
 } from "../../lib/cdp-server-wallet";
 import { fragBoxBettingAbi } from "@/constants/abi";
-
-const CONTRACT_ADDRESS = process.env
-  .NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA as `0x${string}`;
+import { fragboxBettingContractAddress } from "@/wagmi";
 
 const publicClient = createPublicClient({
   chain: baseSepolia,
@@ -81,7 +79,7 @@ async function processNewBets() {
     console.log(`🔎 Fetching logs ${fromBlock} → ${toBlock}`);
 
     const logs = await publicClient.getLogs({
-      address: CONTRACT_ADDRESS,
+      address: fragboxBettingContractAddress,
       event: betPlacedEvent,
       fromBlock,
       toBlock,

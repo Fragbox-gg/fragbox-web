@@ -10,7 +10,13 @@ import {
 } from "@coinbase/cdp-hooks";
 import { useBalance } from "wagmi";
 import { parseEther, parseUnits, erc20Abi, encodeFunctionData } from "viem";
-import { selectedBaseNetwork, selectedBaseChain, isTestBase } from "@/wagmi";
+import {
+  selectedBaseNetwork,
+  selectedBaseChain,
+  isTestBase,
+  usdcAddress,
+  paymasterUrl,
+} from "@/wagmi";
 import { toast } from "sonner";
 import {
   Fund,
@@ -62,9 +68,7 @@ export default function EmbeddedWalletButton() {
 
   const { data: usdcBalanceData } = useBalance({
     address: evmAddress as `0x${string}` | undefined,
-    token: (isTestBase
-      ? process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA
-      : process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_MAINNET) as `0x${string}`,
+    token: usdcAddress,
     chainId: selectedBaseChain.id,
     query: {
       enabled: !!evmAddress,
@@ -538,8 +542,8 @@ function TestnetWithdrawForm({
   return (
     <CryptoWithdrawForm
       evmAddress={evmAddress}
-      usdcAddress={process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA as string}
-      paymasterUrl={process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT as string}
+      usdcAddress={usdcAddress}
+      paymasterUrl={paymasterUrl}
       networkDisplayName="Base Sepolia"
       onClose={onClose}
     />
@@ -628,12 +632,8 @@ function MainnetWithdrawForm({
         /* Crypto withdrawal on Base mainnet */
         <CryptoWithdrawForm
           evmAddress={evmAddress}
-          usdcAddress={
-            process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_MAINNET as string
-          }
-          paymasterUrl={
-            process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT as string
-          }
+          usdcAddress={usdcAddress}
+          paymasterUrl={paymasterUrl}
           networkDisplayName="Base"
           onClose={onClose}
         />

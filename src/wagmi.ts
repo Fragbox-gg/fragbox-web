@@ -15,3 +15,21 @@ export const config = getDefaultConfig({
 });
 
 export const isTestBase = selectedBaseChain.id === baseSepolia.id;
+
+export const fragboxBettingContractAddress = (
+  isTestBase
+    ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
+    : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
+) as `0x${string}`;
+
+export const paymasterUrl = (
+  isTestBase
+    ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
+    : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT
+) as string;
+
+export const usdcAddress = (
+  isTestBase
+    ? process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA
+    : process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_MAINNET
+) as `0x${string}`;

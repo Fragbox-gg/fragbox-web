@@ -2,18 +2,12 @@
 import { CdpClient } from "@coinbase/cdp-sdk";
 import { encodeFunctionData, parseEther } from "viem";
 import { fragBoxBettingAbi } from "@/constants/abi";
-import { selectedBaseNetwork, isTestBase } from "@/wagmi";
+import {
+  fragboxBettingContractAddress,
+  paymasterUrl,
+  selectedBaseNetwork,
+} from "@/wagmi";
 import { getPlayerFaction, getMatchStatus } from "./faceit/faceit-api";
-
-const contractAddress = (
-  isTestBase
-    ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
-    : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
-) as `0x${string}`;
-
-const paymasterUrl = isTestBase
-  ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
-  : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT;
 
 let cachedSmartAccount: any = null;
 
@@ -48,7 +42,11 @@ export async function updateMatchRoster(
     smartAccount,
     network: selectedBaseNetwork,
     calls: [
-      { to: contractAddress, value: parseEther("0"), data: functionData },
+      {
+        to: fragboxBettingContractAddress,
+        value: parseEther("0"),
+        data: functionData,
+      },
     ],
     paymasterUrl,
   });
@@ -80,7 +78,11 @@ export async function updateMatchStatus(matchId: string) {
     smartAccount,
     network: selectedBaseNetwork,
     calls: [
-      { to: contractAddress, value: parseEther("0"), data: functionData },
+      {
+        to: fragboxBettingContractAddress,
+        value: parseEther("0"),
+        data: functionData,
+      },
     ],
     paymasterUrl,
   });

@@ -1,7 +1,10 @@
 // components/match/MatchCard.tsx
 import Image from "next/image";
 import { EnrichedMatch } from "@/lib/faceit/types";
-import { useFragboxActions } from "@/hooks/useFragboxActions";
+import {
+  useFragboxActions,
+  useGetMatchStatus,
+} from "@/hooks/useFragboxActions";
 
 interface MatchCardProps {
   match: EnrichedMatch;
@@ -37,9 +40,8 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     minute: "2-digit",
   });
 
-  const { claim, emergencyRefund, getMatchStatus, isPending } =
-    useFragboxActions();
-  const { data: matchOnChain } = getMatchStatus(match.match_id);
+  const { claim, emergencyRefund, withdraw, isPending } = useFragboxActions();
+  const { data: matchOnChain } = useGetMatchStatus(match.match_id);
 
   const matchStatus = matchOnChain?.matchStatus as number | undefined;
 

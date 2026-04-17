@@ -17,7 +17,12 @@ import { CdpClient } from "@coinbase/cdp-sdk";
 import dotenv from "dotenv";
 import { encodeFunctionData, parseEther } from "viem";
 import { fragBoxBettingAbi } from "../src/constants/abi";
-import { selectedBaseNetwork, isTestBase } from "../src/wagmi";
+import {
+  fragboxBettingContractAddress,
+  selectedBaseNetwork,
+  isTestBase,
+  paymasterUrl,
+} from "../src/wagmi";
 
 dotenv.config();
 
@@ -43,14 +48,7 @@ async function main() {
     process.exit(1);
   }
 
-  const network = selectedBaseNetwork;
-  const contractAddress = (
-    isTestBase
-      ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
-      : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
-  ) as `0x${string}`;
-
-  if (!contractAddress?.startsWith("0x")) {
+  if (!fragboxBettingContractAddress?.startsWith("0x")) {
     console.error(
       "❌ NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS not set in .env",
     );
@@ -60,8 +58,8 @@ async function main() {
   console.log(`🔄 Registering player wallet`);
   console.log(`   Player ID : ${playerId}`);
   console.log(`   Wallet    : ${walletAddress}`);
-  console.log(`   Network   : ${network}`);
-  console.log(`   Contract  : ${contractAddress}\n`);
+  console.log(`   Network   : ${selectedBaseNetwork}`);
+  console.log(`   Contract  : ${fragboxBettingContractAddress}\n`);
 
   try {
     const cdp = new CdpClient();
@@ -84,17 +82,15 @@ async function main() {
 
     const result = await cdp.evm.sendUserOperation({
       smartAccount: smartAccount,
-      network,
+      network: selectedBaseNetwork,
       calls: [
         {
-          to: contractAddress,
+          to: fragboxBettingContractAddress,
           value: parseEther("0"),
           data,
         },
       ],
-      paymasterUrl: isTestBase
-        ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
-        : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT,
+      paymasterUrl: paymasterUrl,
     });
 
     console.log(`✅ UserOp submitted! Hash: ${result.userOpHash}`);

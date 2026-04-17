@@ -4,7 +4,13 @@ import { Buffer } from "buffer";
 import { CdpClient } from "@coinbase/cdp-sdk";
 import { encodeFunctionData, parseEther, createPublicClient, http } from "viem";
 import { fragBoxBettingAbi } from "@/constants/abi";
-import { selectedBaseChain, selectedBaseNetwork, isTestBase } from "@/wagmi";
+import {
+  fragboxBettingContractAddress,
+  selectedBaseChain,
+  selectedBaseNetwork,
+  isTestBase,
+  paymasterUrl,
+} from "@/wagmi";
 
 export default async function handler(
   req: NextApiRequest,
@@ -130,12 +136,6 @@ export default async function handler(
         owner: owner,
       });
 
-      const contractAddress = (
-        isTestBase
-          ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
-          : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
-      ) as `0x${string}`;
-
       // 1. Check if this player already has the exact same wallet registered
       const publicClient = createPublicClient({
         chain: selectedBaseChain,
@@ -143,7 +143,7 @@ export default async function handler(
       });
 
       const registeredWallet = await publicClient.readContract({
-        address: contractAddress,
+        address: fragboxBettingContractAddress,
         abi: fragBoxBettingAbi,
         functionName: "getRegisteredWallet",
         args: [playerIdStr],
@@ -172,14 +172,12 @@ export default async function handler(
           network: selectedBaseNetwork,
           calls: [
             {
-              to: contractAddress,
+              to: fragboxBettingContractAddress,
               value: parseEther("0"),
               data,
             },
           ],
-          paymasterUrl: isTestBase
-            ? process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT
-            : process.env.CDP_BASE_MAINNET_PAYMASTER_ENDPOINT,
+          paymasterUrl: paymasterUrl,
         });
 
         console.log(

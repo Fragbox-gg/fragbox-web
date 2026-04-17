@@ -13,15 +13,15 @@ import Image from "next/image";
 import EmbeddedWalletButton from "./coinbase/EmbeddedWalletButton";
 import { useIsSignedIn, useSignOut } from "@coinbase/cdp-hooks";
 import { useRegisteredWallet } from "@/hooks/useRegisteredWallet";
-import { useFragboxActions } from "@/hooks/useFragboxActions";
+import { useFragboxActions, useGetWinnings } from "@/hooks/useFragboxActions";
 
 const Header = ({ faceitUser }: FaceitUserInfoProps) => {
   const { isSignedIn: isCdpSignedIn } = useIsSignedIn();
   const { signOut: signOutCDP } = useSignOut();
 
-  const { withdraw, getWinnings, isPending } = useFragboxActions();
+  const { claim, emergencyRefund, withdraw, isPending } = useFragboxActions();
   const playerId = faceitUser ? faceitUser.guid || "" : "";
-  const { data: winnings } = getWinnings(playerId);
+  const { data: winnings } = useGetWinnings(playerId);
 
   // Formatted display (USDC has 6 decimals)
   const winningsAmount = winnings ? Number(winnings) / 1_000_000 : 0;

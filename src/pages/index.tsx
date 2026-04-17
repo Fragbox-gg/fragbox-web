@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { FaceitUserInfoProps } from "../lib/faceit/types";
 import PlayerMatchHistory from "../components/PlayerMatchHistory";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   useIsSignedIn,
   useEvmAddress,
@@ -21,7 +21,11 @@ import {
 } from "@coinbase/cdp-hooks";
 import { toast } from "sonner";
 import { parseUnits, encodeFunctionData, type Address } from "viem";
-import { selectedBaseNetwork, isTestBase } from "@/wagmi";
+import {
+  fragboxBettingContractAddress,
+  selectedBaseNetwork,
+  paymasterUrl,
+} from "@/wagmi";
 import { fragBoxBettingAbi } from "@/constants/abi";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -255,12 +259,6 @@ function BetOnMatchModal({
 
     setLoading(true);
 
-    const contractAddress = (
-      isTestBase
-        ? process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_SEPOLIA
-        : process.env.NEXT_PUBLIC_FRAGBOXBETTING_CONTRACT_ADDRESS_BASE_MAINNET
-    ) as `0x${string}`;
-
     const rawBetAmount = parseUnits(amount, 6);
 
     const data = encodeFunctionData({
@@ -273,9 +271,15 @@ function BetOnMatchModal({
       const result = await sendUserOperation({
         evmSmartAccount: evmAddress as `0x${string}`,
         network: selectedBaseNetwork,
-        calls: [{ to: contractAddress, value: parseUnits("0", 18), data }],
+        calls: [
+          {
+            to: fragboxBettingContractAddress,
+            value: parseUnits("0", 18),
+            data,
+          },
+        ],
         useCdpPaymaster: true,
-        paymasterUrl: process.env.CDP_BASE_SEPOLIA_PAYMASTER_ENDPOINT as string,
+        paymasterUrl: paymasterUrl,
       });
 
       toast.success("✅ Bet deposited successfully!", {
