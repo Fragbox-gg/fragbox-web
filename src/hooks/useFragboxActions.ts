@@ -1,4 +1,4 @@
-import { useReadContract } from "wagmi";
+import { useReadContract, usePublicClient } from "wagmi";
 import { fragBoxBettingAbi } from "@/constants/abi";
 import {
   fragboxBettingContractAddress,
@@ -6,15 +6,10 @@ import {
   paymasterUrl,
 } from "@/wagmi";
 import { keccak256, stringToBytes, encodeFunctionData, parseEther } from "viem";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
-import {
-  useSignInWithEmail,
-  useVerifyEmailOTP,
-  useIsSignedIn,
-  useEvmAddress,
-  useSendUserOperation,
-} from "@coinbase/cdp-hooks";
+import { useEvmAddress, useSendUserOperation } from "@coinbase/cdp-hooks";
+import { useQuery } from "@tanstack/react-query";
 
 // ───── Pure utility (no hook needed) ─────
 const getPlayerKey = (playerId: string) => keccak256(stringToBytes(playerId));
@@ -71,6 +66,82 @@ export function useHasPlacedBet(matchId?: string, playerId?: string) {
 
   // Faction enum: 0 = no bet, 1/2 = placed on a side
   return !!faction && Number(faction) !== 0;
+}
+
+// ───── Check if player has already claimed or received emergency refund via events ─────
+export function useHasBeenProcessed(matchId?: string, playerId?: string) {
+  const publicClient = usePublicClient();
+
+  const matchKey = useMemo(
+    () => (matchId ? keccak256(stringToBytes(matchId)) : undefined),
+    [matchId],
+  );
+
+  return useQuery({
+    queryKey: ["hasBeenProcessed", matchId, playerId],
+    queryFn: async () => {
+      if (!matchId || !playerId || !matchKey || !publicClient) return false;
+
+      const matchClaimedEvent = fragBoxBettingAbi.find(
+        (
+          item,
+        ): item is Extract<
+          (typeof fragBoxBettingAbi)[number],
+          { type: "event"; name: "MatchClaimed" }
+        > => item.type === "event" && item.name === "MatchClaimed",
+      );
+
+      const emergencyRefundEvent = fragBoxBettingAbi.find(
+        (
+          item,
+        ): item is Extract<
+          (typeof fragBoxBettingAbi)[number],
+          { type: "event"; name: "EmergencyRefund" }
+        > => item.type === "event" && item.name === "EmergencyRefund",
+      );
+
+      if (!matchClaimedEvent || !emergencyRefundEvent) return false;
+
+      // ─────────────────────────────────────────────────────────────
+      // FIX: Limit block range to prevent 413 Content Too Large
+      // ─────────────────────────────────────────────────────────────
+      const currentBlock = await publicClient.getBlockNumber();
+      const MAX_BLOCKS_BACK = 10000n; // ≈ 2-3 hours of history on Base Sepolia (safe for public RPC)
+
+      const fromBlock =
+        currentBlock > MAX_BLOCKS_BACK ? currentBlock - MAX_BLOCKS_BACK : 0n;
+
+      const [claimLogs, refundLogs] = await Promise.all([
+        publicClient.getLogs({
+          address: fragboxBettingContractAddress,
+          event: matchClaimedEvent,
+          args: { matchKey } as any,
+          fromBlock,
+          toBlock: "latest" as const,
+        }),
+        publicClient.getLogs({
+          address: fragboxBettingContractAddress,
+          event: emergencyRefundEvent,
+          args: { matchKey } as any,
+          fromBlock,
+          toBlock: "latest" as const,
+        }),
+      ]);
+
+      const playerHasClaimed = claimLogs.some(
+        (log: any) => log.args?.playerId === playerId,
+      );
+      const playerHasEmergencyRefund = refundLogs.some(
+        (log: any) => log.args?.playerId === playerId,
+      );
+
+      return playerHasClaimed || playerHasEmergencyRefund;
+    },
+    enabled: !!matchId && !!playerId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15,
+    retry: 2,
+  });
 }
 
 // ───── WRITE ACTIONS ─────

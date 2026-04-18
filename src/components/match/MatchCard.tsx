@@ -4,6 +4,7 @@ import { EnrichedMatch } from "@/lib/faceit/types";
 import {
   useFragboxActions,
   useGetMatchBet,
+  useHasBeenProcessed,
   useHasPlacedBet,
 } from "@/hooks/useFragboxActions";
 
@@ -51,7 +52,6 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     | number
     | undefined;
   const matchStatus = matchOnChain?.matchStatus as number | undefined;
-  const factionTotals = matchOnChain?.factionTotals as bigint[] | undefined;
 
   let isClaimEligible = matchStatus === 4 || matchStatus === 5; // Not invalid, and is finished or invalid
 
@@ -62,6 +62,18 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     !!matchStartBlockTimestamp && // guard against undefined
     matchStartBlockTimestamp > 0n && // sometimes it's 0 (not started yet)
     nowInSeconds > Number(matchStartBlockTimestamp) + EMERGENCY_REFUND_TIMEOUT;
+
+  const { data: hasBeenProcessed = false } = useHasBeenProcessed(
+    match.match_id,
+    userPlayerId,
+  );
+
+  // Total pot
+  const factionTotals = (matchOnChain?.factionTotals as
+    | bigint[]
+    | undefined) || [0n, 0n, 0n, 0n];
+  const totalPotWei = factionTotals[1] + factionTotals[2] + factionTotals[3]; // F1 + F2 + Draw
+  const totalPotUsd = Number(totalPotWei) / 1_000_000; // USDC has 6 decimals
 
   // Hide Claim for losers with no excess
   let canClaim = false;
@@ -101,7 +113,10 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     }
   };
 
-  const showButton = hasPlacedBet && (isClaimEligible || isEmergencyEligible);
+  const showButton =
+    hasPlacedBet &&
+    !hasBeenProcessed &&
+    (isClaimEligible || isEmergencyEligible);
 
   return (
     <div
@@ -164,7 +179,12 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
                 {leftScore} : {rightScore}
               </div>
               <div className="text-sm text-gray-400 font-medium mt-1">
-                No bets
+                {totalPotUsd > 0
+                  ? `$${totalPotUsd.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`
+                  : "No bets"}
               </div>
             </div>
 
