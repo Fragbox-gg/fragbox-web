@@ -7,3 +7,5 @@ generate-abi: npx wagmi generate
 create-server-wallet: npx tsx scripts/create-server-wallet.ts
 
 drain-server-wallet: npx tsx scripts/drain-server-wallet.ts
+
+transfer-ownership-from-server-wallet: npx tsx scripts/transfer-ownership-from-server-wallet.ts

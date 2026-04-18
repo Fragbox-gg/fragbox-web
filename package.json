@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "dotenv -- dcli exec -- next dev --experimental-https",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "create-server-wallet": "dotenv -- dcli exec -- npx tsx scripts/create-server-wallet.ts",
+    "drain-server-wallet": "dotenv -- dcli exec -- npx tsx scripts/drain-server-wallet.ts",
+    "transfer-ownership": "dotenv -- dcli exec -- npx tsx scripts/transfer-ownership-from-server-wallet.ts"
   },
   "dependencies": {
     "@coinbase/cdp-core": "^0.0.100",
