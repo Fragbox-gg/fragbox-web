@@ -51,8 +51,9 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     | number
     | undefined;
   const matchStatus = matchOnChain?.matchStatus as number | undefined;
+  const factionTotals = matchOnChain?.factionTotals as bigint[] | undefined;
 
-  const isClaimEligible = matchStatus === 4 || matchStatus === 5; // Not invalid, and is finished or invalid
+  let isClaimEligible = matchStatus === 4 || matchStatus === 5; // Not invalid, and is finished or invalid
 
   const nowInSeconds = Math.floor(Date.now() / 1000);
   const EMERGENCY_REFUND_TIMEOUT = 14400; // 4 hours in seconds
@@ -61,6 +62,36 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
     !!matchStartBlockTimestamp && // guard against undefined
     matchStartBlockTimestamp > 0n && // sometimes it's 0 (not started yet)
     nowInSeconds > Number(matchStartBlockTimestamp) + EMERGENCY_REFUND_TIMEOUT;
+
+  // Hide Claim for losers with no excess
+  let canClaim = false;
+  if (hasPlacedBet && isClaimEligible && factionTotals) {
+    const winnerFaction = matchOnChain?.winnerFaction as number | undefined;
+    const userFactionIndex = userInFaction1 ? 1 : 2;
+
+    // Draw / Invalid / no winning bets → always claimable (full refund)
+    if (
+      winnerFaction === 3 || // Draw
+      winnerFaction === 0 || // Unknown (shouldn't happen)
+      (winnerFaction === 1 && factionTotals[1] === 0n) ||
+      (winnerFaction === 2 && factionTotals[2] === 0n)
+    ) {
+      canClaim = true;
+    } else if (userFactionIndex === winnerFaction) {
+      // Winner side -> always claimable
+      canClaim = true;
+    } else {
+      // Loser side -> only if losing side overbet (excess exists)
+      const winningTotal =
+        winnerFaction === 1 ? factionTotals[1] : factionTotals[2];
+      const losingTotal =
+        winnerFaction === 1 ? factionTotals[2] : factionTotals[1];
+
+      canClaim = losingTotal > winningTotal;
+    }
+  }
+
+  isClaimEligible = isClaimEligible && canClaim;
 
   const handleAction = () => {
     if (isClaimEligible) {
