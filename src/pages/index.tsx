@@ -2,25 +2,16 @@ import type { GetServerSideProps, NextPage } from "next";
 import Head from "next/head";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Rectangle,
-} from "recharts";
 import { FaceitUserInfoProps } from "../lib/faceit/types";
 import PlayerMatchHistory from "../components/PlayerMatchHistory";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useIsSignedIn,
   useEvmAddress,
   useSendUserOperation,
 } from "@coinbase/cdp-hooks";
 import { toast } from "sonner";
-import { parseUnits, encodeFunctionData, type Address } from "viem";
+import { parseUnits, encodeFunctionData } from "viem";
 import {
   fragboxBettingContractAddress,
   selectedBaseNetwork,
@@ -31,6 +22,32 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [stats, setStats] = useState<{
+    totalMatches: number;
+    totalWagered: string;
+    uniqueBettors: number;
+    avgPotSize: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      }
+    };
+
+    fetchStats();
+    // Refresh every 30 seconds so it feels live
+    const interval = setInterval(fetchStats, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -115,12 +132,28 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
             <h3 className="text-sm font-mono text-lime-400 uppercase tracking-widest mb-6">
               Platform Metrics
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label="Active Matches" value="42" />
-              <StatCard label="Total Wagers" value="$12,345" />
-              <StatCard label="Players Online" value="1,234" />
-              <StatCard label="Avg. Pot Size" value="$50" />
-            </div>
+
+            {stats ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard
+                  label="Total Matches"
+                  value={stats.totalMatches.toString()}
+                />
+                <StatCard label="Total Wagered" value={stats.totalWagered} />
+                <StatCard
+                  label="Unique Bettors"
+                  value={stats.uniqueBettors.toString()}
+                />
+                <StatCard label="Avg. Pot Size" value={stats.avgPotSize} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatCard label="Total Matches" value="—" />
+                <StatCard label="Total Wagered" value="—" />
+                <StatCard label="Unique Bettors" value="—" />
+                <StatCard label="Avg. Pot Size" value="—" />
+              </div>
+            )}
           </section>
 
           {/* Recent Matches Section */}
