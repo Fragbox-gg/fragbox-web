@@ -11,11 +11,12 @@ import {
   useSendUserOperation,
 } from "@coinbase/cdp-hooks";
 import { toast } from "sonner";
-import { parseUnits, encodeFunctionData } from "viem";
+import { parseUnits, encodeFunctionData, erc20Abi } from "viem";
 import {
   fragboxBettingContractAddress,
   selectedBaseNetwork,
   paymasterUrl,
+  usdcAddress,
 } from "@/wagmi";
 import { fragBoxBettingAbi } from "@/constants/abi";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -294,23 +295,34 @@ function BetOnMatchModal({
 
     setLoading(true);
 
-    const rawBetAmount = parseUnits(amount, 6);
-
-    const data = encodeFunctionData({
-      abi: fragBoxBettingAbi,
-      functionName: "deposit",
-      args: [parsedMatchId, faceitUser.guid, rawBetAmount, tierId],
-    });
-
     try {
+      const rawBetAmount = parseUnits(amount, 6);
+
+      const approvalData = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [fragboxBettingContractAddress, rawBetAmount],
+      });
+
+      const depositData = encodeFunctionData({
+        abi: fragBoxBettingAbi,
+        functionName: "deposit",
+        args: [parsedMatchId, faceitUser.guid, rawBetAmount, tierId],
+      });
+
       const result = await sendUserOperation({
         evmSmartAccount: evmAddress as `0x${string}`,
         network: selectedBaseNetwork,
         calls: [
           {
+            to: usdcAddress,
+            value: parseUnits("0", 18),
+            data: approvalData,
+          },
+          {
             to: fragboxBettingContractAddress,
             value: parseUnits("0", 18),
-            data,
+            data: depositData,
           },
         ],
         useCdpPaymaster: true,
