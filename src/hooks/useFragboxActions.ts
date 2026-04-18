@@ -105,7 +105,7 @@ export function useFragboxActions() {
       });
 
       toast.success("✅ Winnings claimed successfully!", {
-        description: `Tx Hash: ${hash}`,
+        description: `Tx Hash: ${hash.userOperationHash}`,
       });
 
       return hash;
@@ -143,7 +143,7 @@ export function useFragboxActions() {
       });
 
       toast.success("✅ Emergency refund successful!", {
-        description: `Tx Hash: ${hash}`,
+        description: `Tx Hash: ${hash.userOperationHash}`,
       });
 
       return hash;
@@ -183,7 +183,7 @@ export function useFragboxActions() {
       });
 
       toast.success("✅ Withdrawal successful!", {
-        description: `Tx Hash: ${hash}`,
+        description: `Tx Hash: ${hash.userOperationHash}`,
       });
 
       return hash;
