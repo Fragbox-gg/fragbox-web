@@ -77,7 +77,6 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
             />
           </section>
 
-          {/* Rest of your sections unchanged */}
           {/* Features Section */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-zinc-900/50 border border-lime-500/20 p-6 rounded-2xl">
@@ -89,14 +88,17 @@ const Home: NextPage<FaceitUserInfoProps> = ({ faceitUser }) => {
                 wager.
               </p>
             </div>
+
             <div className="bg-zinc-900/50 border border-lime-500/20 p-6 rounded-2xl">
               <h3 className="text-xl font-bold text-lime-400">
-                Advanced Matchmaking
+                Decentralized Escrow
               </h3>
               <p className="text-zinc-400 mt-2">
-                ML-driven: Roles, playstyle, toxicity balanced for fair games.
+                USDC locked in smart contracts on Base. Trustless payouts and
+                refunds—no counterparty risk.
               </p>
             </div>
+
             <div className="bg-zinc-900/50 border border-lime-500/20 p-6 rounded-2xl">
               <h3 className="text-xl font-bold text-lime-400">
                 Faceit Integration
