@@ -59,8 +59,8 @@ export default function MatchCard({ match, userPlayerId }: MatchCardProps) {
   const isEmergencyEligible =
     !isClaimEligible &&
     !!matchStartBlockTimestamp && // guard against undefined
-    matchStartBlockTimestamp > 0 && // sometimes it's 0 (not started yet)
-    nowInSeconds > matchStartBlockTimestamp + EMERGENCY_REFUND_TIMEOUT;
+    matchStartBlockTimestamp > 0n && // sometimes it's 0 (not started yet)
+    nowInSeconds > Number(matchStartBlockTimestamp) + EMERGENCY_REFUND_TIMEOUT;
 
   const handleAction = () => {
     if (isClaimEligible) {
