@@ -15,7 +15,7 @@ export default function PlayerMatchHistory({
 
   useEffect(() => {
     if (!faceitUser?.guid) {
-      setError("No FACEIT user GUID provided.");
+      setError("Please Sign In.");
       setLoading(false);
       return;
     }
@@ -48,9 +48,7 @@ export default function PlayerMatchHistory({
   }
 
   if (error) {
-    return (
-      <div className="p-8 text-center text-red-400 text-xl">Error: {error}</div>
-    );
+    return <div className="p-8 text-center text-red-400 text-xl">{error}</div>;
   }
 
   return (
