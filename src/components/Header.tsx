@@ -22,6 +22,7 @@ const Header = ({ faceitUser }: FaceitUserInfoProps) => {
   const { claim, emergencyRefund, withdraw, isPending } = useFragboxActions();
   const playerId = faceitUser ? faceitUser.guid || "" : "";
   const { data: winnings } = useGetWinnings(playerId);
+  console.log(winnings);
 
   // Formatted display (USDC has 6 decimals)
   const winningsAmount = winnings ? Number(winnings) / 1_000_000 : 0;

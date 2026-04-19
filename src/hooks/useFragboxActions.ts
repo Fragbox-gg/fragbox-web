@@ -11,21 +11,24 @@ import { toast } from "sonner";
 import { useEvmAddress, useSendUserOperation } from "@coinbase/cdp-hooks";
 import { useQuery } from "@tanstack/react-query";
 
-// ───── Pure utility (no hook needed) ─────
-const getPlayerKey = (playerId: string) => keccak256(stringToBytes(playerId));
-
 // ───── READ HOOKS (these must be called at the top level) ─────
 export function useGetWinnings(playerId?: string) {
+  const { evmAddress } = useEvmAddress();
+
   const playerKey = useMemo(
-    () => (playerId ? getPlayerKey(playerId) : undefined),
+    () => (playerId ? keccak256(stringToBytes(playerId)) : undefined),
     [playerId],
   );
+
+  console.log(playerId);
+  console.log(playerKey);
 
   return useReadContract({
     address: fragboxBettingContractAddress,
     abi: fragBoxBettingAbi,
     functionName: "getWinnings",
     args: playerKey ? [playerKey] : undefined,
+    account: evmAddress as `0x${string}`,
     query: { enabled: !!playerId },
   });
 }
@@ -52,7 +55,7 @@ export function useHasPlacedBet(matchId?: string, playerId?: string) {
     [matchId],
   );
   const playerKey = useMemo(
-    () => (playerId ? getPlayerKey(playerId) : undefined),
+    () => (playerId ? keccak256(stringToBytes(playerId)) : undefined),
     [playerId],
   );
 
